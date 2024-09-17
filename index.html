@@ -7,14 +7,15 @@
     <style>
         /* Root variables for theme colors */
         :root {
-            --primary-bg-color-dark: #0d0d0d;
-            --primary-bg-color-light: #f5f5f5;
-            --primary-text-color-dark: #00ff00;
+            --primary-bg-color-dark: #2e2e2e;
+            --primary-bg-color-light: #ffffff;
+            --primary-text-color-dark: #e0e0e0;
             --primary-text-color-light: #333333;
-            --secondary-bg-color-dark: #1a1a1a;
-            --secondary-bg-color-light: #ffffff;
-            --accent-color: #00ff00;
-            --hover-accent-color: #33ff33;
+            --secondary-bg-color-dark: #383838;
+            --secondary-bg-color-light: #f2f2f2;
+            --accent-color: #4a90e2; /* Blue accent for links and highlights */
+            --hover-background-dark: #4a4a4a; /* Slightly lighter background on hover */
+            --hover-background-light: #e0e0e0; /* Slightly darker background on hover */
         }
 
         /* Default dark mode */
@@ -31,7 +32,7 @@
         }
 
         body {
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
             transition: background-color 0.3s, color 0.3s;
@@ -70,7 +71,11 @@
         }
 
         section:hover {
-            background-color: var(--hover-accent-color);
+            background-color: var(--hover-background-dark);
+        }
+
+        body.light-mode section:hover {
+            background-color: var(--hover-background-light);
         }
 
         /* Links styling */
@@ -81,12 +86,19 @@
         }
 
         a:hover {
-            color: var(--hover-accent-color);
+            color: var(--hover-background-dark);
         }
 
         /* Social badges styling */
-        #badges img {
+        #badges a {
             margin: 10px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        #badges img {
+            height: 28px;
+            margin-right: 8px;
         }
 
         /* Profile views */
@@ -118,7 +130,7 @@
         }
 
         .theme-toggle:hover {
-            background-color: var(--hover-accent-color);
+            background-color: var(--hover-background-dark);
         }
 
         .theme-toggle img {
@@ -179,18 +191,23 @@
         <div id="badges">
             <a href="https://www.linkedin.com/in/srb1mal">
                 <img src="https://img.shields.io/badge/LinkedIn-skyblue?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn Badge"/>
+                LinkedIn
             </a>
             <a href="https://www.x.com/srb1mal">
                 <img src="https://img.shields.io/badge/X-grey?style=for-the-badge&logo=X&logoColor=white" alt="X Badge"/>
+                X
             </a>
             <a href="https://tryhackme.com/p/Somtheh4cker">
                 <img src="https://img.shields.io/badge/Tryhackme-black?style=for-the-badge&logo=Tryhackme&logoColor=white" alt="Tryhackme Badge"/>
+                Tryhackme
             </a>
             <a href="https://app.hackthebox.com/profile/1057390">
                 <img src="https://img.shields.io/badge/HackTheBox-green?style=for-the-badge&logo=Hackthebox&logoColor=black" alt="Hackthebox Badge"/>
+                HackTheBox
             </a>
             <a href="https://www.bugbountyhunter.com/hunter/srb1mal">
-                <img src="https://www.bugbountyhunter.com/assets/img/newlogo.png" style="height: 28px;" alt="BugBountyHunter Badge"/>
+                <img src="https://www.bugbountyhunter.com/assets/img/newlogo.png" alt="BugBountyHunter Badge"/>
+                BugBountyHunter
             </a>
         </div>
         <div id="profile-views">
