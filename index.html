@@ -5,65 +5,135 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bimal Kumar Sahoo - Profile</title>
     <style>
-        /* Dark mode background and text colors */
+        /* Root variables for theme colors */
+        :root {
+            --primary-bg-color-dark: #121212;
+            --primary-bg-color-light: #f5f5f5;
+            --primary-text-color-dark: #e0e0e0;
+            --primary-text-color-light: #333333;
+            --secondary-bg-color-dark: #1f1f1f;
+            --secondary-bg-color-light: #ffffff;
+            --accent-color: #007bff;
+            --hover-accent-color: #0056b3;
+        }
+
+        /* Default dark mode */
+        body.dark-mode {
+            background-color: var(--primary-bg-color-dark);
+            color: var(--primary-text-color-dark);
+        }
+
+        body.light-mode {
+            background-color: var(--primary-bg-color-light);
+            color: var(--primary-text-color-light);
+        }
+
         body {
-            background-color: #121212;
-            color: #e0e0e0;
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
+            transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Styling for headings */
+        /* Heading styling */
         h1, h2 {
-            color: #ffffff;
+            font-weight: 600;
+            color: inherit;
         }
 
-        /* Links color */
+        h1 {
+            font-size: 2.5em;
+            margin-top: 20px;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        /* Section styling */
+        section {
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 900px;
+            background-color: var(--secondary-bg-color-dark);
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        body.light-mode section {
+            background-color: var(--secondary-bg-color-light);
+        }
+
+        /* Links styling */
         a {
-            color: #1e90ff;
+            color: var(--accent-color);
             text-decoration: none;
+            transition: color 0.2s;
         }
 
         a:hover {
-            color: #00bfff;
+            color: var(--hover-accent-color);
         }
 
-        /* Styling for sections */
-        section {
-            margin: 20px;
-            padding: 10px;
-            border-radius: 8px;
-            background-color: #1f1f1f;
-        }
-
-        /* Badge styling */
+        /* Social badges styling */
         #badges img {
             margin: 10px;
         }
 
-        /* Profile views counter */
+        /* Profile views */
         #profile-views img {
             margin-top: 10px;
-        }
-
-        /* Center elements */
-        div#header, div#badges, div#profile-views, div#footer-gif {
-            text-align: center;
-        }
-
-        /* GitHub stats */
-        img.github-stats {
-            margin-top: 20px;
         }
 
         /* Footer GIF styling */
         div#footer-gif {
             margin-top: 30px;
         }
+
+        /* Toggle button for theme */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--hover-accent-color);
+        }
+
+        /* Media queries for responsiveness */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            section {
+                padding: 15px;
+            }
+
+            .theme-toggle {
+                font-size: 0.9em;
+                padding: 8px 16px;
+            }
+        }
     </style>
 </head>
-<body>
+<body class="dark-mode">
+
+  <!-- Toggle Button -->
+  <button class="theme-toggle" id="theme-toggle">Switch to Light Mode</button>
 
   <!-- Header Section -->
   <div id="header" align="center">
@@ -141,11 +211,27 @@
       <li>🔰 Badminton</li>
     </ul>
   </section>
-    
+
   <!-- Footer GIF -->
   <div id="footer-gif" align="center">
     <img src="https://media.giphy.com/media/dWesBcTLavkZuG35MI/giphy.gif" width="500" height="200" alt="Footer GIF"/>
   </div>
 
+  <script>
+      // JavaScript for dark/light mode toggle
+      const toggleButton = document.getElementById('theme-toggle');
+      const body = document.body;
+
+      toggleButton.addEventListener('click', () => {
+          body.classList.toggle('light-mode');
+          body.classList.toggle('dark-mode');
+
+          if (body.classList.contains('light-mode')) {
+              toggleButton.textContent = 'Switch to Dark Mode';
+          } else {
+              toggleButton.textContent = 'Switch to Light Mode';
+          }
+      });
+  </script>
 </body>
 </html>
