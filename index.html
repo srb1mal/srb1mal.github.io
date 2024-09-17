@@ -14,7 +14,8 @@
             --secondary-bg-color-dark: #383838;
             --secondary-bg-color-light: #ffffff;
             --accent-color: #007bff;
-            --hover-color: #e0e0e0;
+            --hover-color-dark: #555555;
+            --hover-color-light: #e0e0e0;
             --text-hover-color: #000000;
         }
 
@@ -71,7 +72,11 @@
         }
 
         section:hover {
-            background-color: var(--hover-color);
+            background-color: var(--hover-color-dark);
+        }
+
+        body.light-mode section:hover {
+            background-color: var(--hover-color-light);
         }
 
         /* Links styling */
@@ -86,13 +91,21 @@
         }
 
         /* Social badges styling */
-        #badges img {
-            margin: 10px;
+        #badges {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
-        /* Profile views */
-        #profile-views img {
-            margin-top: 10px;
+        #badges a {
+            margin: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        #badges img {
+            height: 28px;
+            margin-right: 8px;
         }
 
         /* Footer GIF styling */
@@ -180,18 +193,22 @@
         <div id="badges">
             <a href="https://www.linkedin.com/in/srb1mal">
                 <img src="https://img.shields.io/badge/LinkedIn-skyblue?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn Badge"/>
+                LinkedIn
             </a>
             <a href="https://www.x.com/srb1mal">
                 <img src="https://img.shields.io/badge/X-grey?style=for-the-badge&logo=X&logoColor=white" alt="X Badge"/>
+                X
             </a>
             <a href="https://tryhackme.com/p/Somtheh4cker">
                 <img src="https://img.shields.io/badge/Tryhackme-black?style=for-the-badge&logo=Tryhackme&logoColor=white" alt="Tryhackme Badge"/>
+                Tryhackme
             </a>
             <a href="https://app.hackthebox.com/profile/1057390">
                 <img src="https://img.shields.io/badge/HackTheBox-green?style=for-the-badge&logo=Hackthebox&logoColor=black" alt="Hackthebox Badge"/>
+                HackTheBox
             </a>
             <a href="https://www.bugbountyhunter.com/hunter/srb1mal">
-                <img src="https://www.bugbountyhunter.com/assets/img/newlogo.png" style="height: 28px;" alt="BugBountyHunter Icon"/>
+                <img src="https://www.bugbountyhunter.com/assets/img/newlogo.png" alt="BugBountyHunter Icon"/>
                 <span>BugBountyHunter</span>
             </a>
         </div>
@@ -242,24 +259,19 @@
 
     <!-- Footer GIF -->
     <div id="footer-gif" align="center">
-        <img src="https://media.giphy.com/media/dWesBcTLavkZuG35MI/giphy.gif" width="500" height="200" alt="Footer GIF"/>
+        <img src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExMHhwdXAxa3Iyb2loa210cGp2NGVwMzhzYjB3enR6YWY2NnM3bmRycyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3knKct3fGqxhK/giphy.gif" width="100" alt="Footer GIF"/>
     </div>
 
     <script>
-        // Toggle between dark and light mode
-        const toggleButton = document.getElementById('theme-toggle');
-        toggleButton.addEventListener('click', function () {
-            document.body.classList.toggle('light-mode');
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            const currentMode = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
             document.body.classList.toggle('dark-mode');
-
-            // Change icon based on theme
-            const icon = toggleButton.querySelector('img');
-            if (document.body.classList.contains('light-mode')) {
-                icon.src = 'https://img.icons8.com/ios-filled/50/000000/moon-symbol.png';
-            } else {
-                icon.src = 'https://img.icons8.com/ios-filled/50/ffffff/sun.png';
-            }
+            document.body.classList.toggle('light-mode');
+            document.getElementById('theme-toggle').innerHTML = currentMode === 'dark' 
+                ? '<img src="https://img.icons8.com/ios-filled/50/ffffff/moon.png" alt="Toggle Icon"/>'
+                : '<img src="https://img.icons8.com/ios-filled/50/ffffff/sun.png" alt="Toggle Icon"/>';
         });
     </script>
+
 </body>
 </html>
