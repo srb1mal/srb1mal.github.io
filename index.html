@@ -7,29 +7,31 @@
     <style>
         /* Root variables for theme colors */
         :root {
-            --primary-bg-color-dark: #121212;
+            --primary-bg-color-dark: #0d0d0d;
             --primary-bg-color-light: #f5f5f5;
-            --primary-text-color-dark: #e0e0e0;
+            --primary-text-color-dark: #00ff00;
             --primary-text-color-light: #333333;
-            --secondary-bg-color-dark: #1f1f1f;
+            --secondary-bg-color-dark: #1a1a1a;
             --secondary-bg-color-light: #ffffff;
-            --accent-color: #007bff;
-            --hover-accent-color: #0056b3;
+            --accent-color: #00ff00;
+            --hover-accent-color: #33ff33;
         }
 
         /* Default dark mode */
         body.dark-mode {
             background-color: var(--primary-bg-color-dark);
             color: var(--primary-text-color-dark);
+            cursor: url('https://icons.iconarchive.com/icons/aha-soft/free-large-boss/48/Boss-Mouse-icon.png'), auto;
         }
 
         body.light-mode {
             background-color: var(--primary-bg-color-light);
             color: var(--primary-text-color-light);
+            cursor: url('https://icons.iconarchive.com/icons/aha-soft/free-large-boss/48/Boss-Mouse-icon.png'), auto;
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Courier New', Courier, monospace;
             margin: 0;
             padding: 0;
             transition: background-color 0.3s, color 0.3s;
@@ -51,7 +53,7 @@
             margin-bottom: 10px;
         }
 
-        /* Section styling */
+        /* Section styling with hover effect */
         section {
             margin: 20px auto;
             padding: 20px;
@@ -63,6 +65,10 @@
 
         body.light-mode section {
             background-color: var(--secondary-bg-color-light);
+        }
+
+        section:hover {
+            background-color: var(--hover-accent-color);
         }
 
         /* Links styling */
