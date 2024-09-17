@@ -8,14 +8,14 @@
         /* Root variables for theme colors */
         :root {
             --primary-bg-color-dark: #2e2e2e;
-            --primary-bg-color-light: #ffffff;
+            --primary-bg-color-light: #f4f4f4;
             --primary-text-color-dark: #e0e0e0;
             --primary-text-color-light: #333333;
             --secondary-bg-color-dark: #383838;
-            --secondary-bg-color-light: #f2f2f2;
-            --accent-color: #4a90e2; /* Blue accent for links and highlights */
-            --hover-background-dark: #4a4a4a; /* Slightly lighter background on hover */
-            --hover-background-light: #e0e0e0; /* Slightly darker background on hover */
+            --secondary-bg-color-light: #ffffff;
+            --accent-color: #007bff;
+            --hover-color: #e0e0e0;
+            --text-hover-color: #000000;
         }
 
         /* Default dark mode */
@@ -32,7 +32,7 @@
         }
 
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Courier New', Courier, monospace;
             margin: 0;
             padding: 0;
             transition: background-color 0.3s, color 0.3s;
@@ -71,11 +71,7 @@
         }
 
         section:hover {
-            background-color: var(--hover-background-dark);
-        }
-
-        body.light-mode section:hover {
-            background-color: var(--hover-background-light);
+            background-color: var(--hover-color);
         }
 
         /* Links styling */
@@ -86,19 +82,12 @@
         }
 
         a:hover {
-            color: var(--hover-background-dark);
+            color: var(--text-hover-color);
         }
 
         /* Social badges styling */
-        #badges a {
-            margin: 10px;
-            display: inline-flex;
-            align-items: center;
-        }
-
         #badges img {
-            height: 28px;
-            margin-right: 8px;
+            margin: 10px;
         }
 
         /* Profile views */
@@ -130,7 +119,7 @@
         }
 
         .theme-toggle:hover {
-            background-color: var(--hover-background-dark);
+            background-color: var(--text-hover-color);
         }
 
         .theme-toggle img {
@@ -191,23 +180,19 @@
         <div id="badges">
             <a href="https://www.linkedin.com/in/srb1mal">
                 <img src="https://img.shields.io/badge/LinkedIn-skyblue?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn Badge"/>
-                LinkedIn
             </a>
             <a href="https://www.x.com/srb1mal">
                 <img src="https://img.shields.io/badge/X-grey?style=for-the-badge&logo=X&logoColor=white" alt="X Badge"/>
-                X
             </a>
             <a href="https://tryhackme.com/p/Somtheh4cker">
                 <img src="https://img.shields.io/badge/Tryhackme-black?style=for-the-badge&logo=Tryhackme&logoColor=white" alt="Tryhackme Badge"/>
-                Tryhackme
             </a>
             <a href="https://app.hackthebox.com/profile/1057390">
                 <img src="https://img.shields.io/badge/HackTheBox-green?style=for-the-badge&logo=Hackthebox&logoColor=black" alt="Hackthebox Badge"/>
-                HackTheBox
             </a>
             <a href="https://www.bugbountyhunter.com/hunter/srb1mal">
-                <img src="https://www.bugbountyhunter.com/assets/img/newlogo.png" alt="BugBountyHunter Badge"/>
-                BugBountyHunter
+                <img src="https://www.bugbountyhunter.com/assets/img/newlogo.png" style="height: 28px;" alt="BugBountyHunter Icon"/>
+                <span>BugBountyHunter</span>
             </a>
         </div>
         <div id="profile-views">
