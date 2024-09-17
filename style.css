@@ -4,6 +4,7 @@ body {
     margin: 0;
     padding: 0;
     transition: background-color 0.3s, color 0.3s;
+    cursor: url('https://github.com/srb1mal/srb1mal.github.io/blob/main/cursor.png'), auto; /* Custom cursor */
 }
 
 header {
@@ -28,13 +29,13 @@ section {
     margin: 20px auto;
     padding: 20px;
     max-width: 900px;
-    background-color: #383838;
+    background-color: #f0f0f0; /* Light background for readability */
     border-radius: 8px;
     transition: background-color 0.3s;
 }
 
 section:hover {
-    background-color: #4a4a4a;
+    background-color: #e0e0e0; /* Slightly darker background on hover */
 }
 
 h2 {
@@ -131,3 +132,15 @@ footer img {
 }
 
 /* Light Mode Styles */
+.light-mode {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+.light-mode .theme-toggle {
+    background-color: #f1f1f1;
+}
+
+.light-mode .theme-toggle:hover {
+    background-color: #cccccc;
+}
