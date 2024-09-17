@@ -44,13 +44,15 @@
         }
 
         h1 {
-            font-size: 2.5em;
+            font-size: 2em;
             margin-top: 20px;
+            text-align: center;
         }
 
         h2 {
-            font-size: 1.8em;
+            font-size: 1.5em;
             margin-bottom: 10px;
+            text-align: center;
         }
 
         /* Section styling with hover effect */
@@ -97,16 +99,20 @@
             margin-top: 30px;
         }
 
-        /* Toggle button for theme */
+        /* Toggle button */
         .theme-toggle {
             position: fixed;
             top: 20px;
             right: 20px;
-            padding: 10px 20px;
+            width: 50px;
+            height: 50px;
             background-color: var(--accent-color);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
             transition: background-color 0.3s;
         }
@@ -115,129 +121,143 @@
             background-color: var(--hover-accent-color);
         }
 
-        /* Media queries for responsiveness */
+        .theme-toggle img {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Responsive settings */
         @media (max-width: 768px) {
             h1 {
-                font-size: 2em;
+                font-size: 1.8em;
             }
 
             h2 {
-                font-size: 1.5em;
+                font-size: 1.2em;
             }
 
             section {
                 padding: 15px;
+                margin: 10px auto;
+                width: 90%;
             }
 
             .theme-toggle {
-                font-size: 0.9em;
-                padding: 8px 16px;
+                width: 40px;
+                height: 40px;
+            }
+
+            .theme-toggle img {
+                width: 20px;
+                height: 20px;
             }
         }
     </style>
 </head>
 <body class="dark-mode">
 
-  <!-- Toggle Button -->
-  <button class="theme-toggle" id="theme-toggle">Switch to Light Mode</button>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="theme-toggle">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/sun.png" alt="Toggle Icon"/>
+    </button>
 
-  <!-- Header Section -->
-  <div id="header" align="center">
-    <h1>Hi Everyone👋, Welcome to my profile!</h1>
-    <img src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExMHhwdXAxa3Iyb2loa210cGp2NGVwMzhzYjB3enR6YWY2NnM3bmRycyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3knKct3fGqxhK/giphy.gif" width="200" alt="Profile GIF"/>
-  </div>
-
-  <!-- Who Am I Section -->
-  <section align="center">
-    <h2>Who Am I?</h2>
-    <p>I am Bimal Kumar Sahoo aka (srb1mal), a username I use on various social platforms. I'm currently pursuing BTech from <em>Synergy Institute of Engineering and Technology</em>.</p>
-  </section>
-
-  <!-- Social Profiles Section -->
-  <section align="center">
-    <h2>Connect with Me</h2>
-    <div id="badges">
-      <a href="https://www.linkedin.com/in/srb1mal">
-        <img src="https://img.shields.io/badge/LinkedIn-skyblue?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn Badge"/>
-      </a>
-      <a href="https://www.x.com/srb1mal">
-        <img src="https://img.shields.io/badge/X-grey?style=for-the-badge&logo=X&logoColor=white" alt="X Badge"/>
-      </a>
-      <a href="https://tryhackme.com/p/Somtheh4cker">
-        <img src="https://img.shields.io/badge/Tryhackme-black?style=for-the-badge&logo=Tryhackme&logoColor=white" alt="Tryhackme Badge"/>
-      </a>
-      <a href="https://app.hackthebox.com/profile/1057390">
-        <img src="https://img.shields.io/badge/HackTheBox-green?style=for-the-badge&logo=Hackthebox&logoColor=black" alt="Hackthebox Badge"/>
-      </a>
-      <a href="https://www.bugbountyhunter.com/hunter/srb1mal">
-        <img src="https://img.shields.io/badge/BugBountyHunter-darkgreen?style=for-the-badge&logo=BugBountyHunter&logoColor=white" alt="BugBountyHunter Badge"/>
-      </a>
+    <!-- Header Section -->
+    <div id="header" align="center">
+        <h1>Hi Everyone👋, Welcome to my profile!</h1>
+        <img src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExMHhwdXAxa3Iyb2loa210cGp2NGVwMzhzYjB3enR6YWY2NnM3bmRycyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3knKct3fGqxhK/giphy.gif" width="200" alt="Profile GIF"/>
     </div>
-    <div id="profile-views">
-      <img src="https://komarev.com/ghpvc/?username=srb1mal&style=flat-square&color=red" alt="Profile Views Counter"/>
+
+    <!-- Who Am I Section -->
+    <section align="center">
+        <h2>Who Am I?</h2>
+        <p>I am Bimal Kumar Sahoo aka (srb1mal), a username I use on various social platforms. I'm currently pursuing BTech from <em>Synergy Institute of Engineering and Technology</em>.</p>
+    </section>
+
+    <!-- Social Profiles Section -->
+    <section align="center">
+        <h2>Connect with Me</h2>
+        <div id="badges">
+            <a href="https://www.linkedin.com/in/srb1mal">
+                <img src="https://img.shields.io/badge/LinkedIn-skyblue?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn Badge"/>
+            </a>
+            <a href="https://www.x.com/srb1mal">
+                <img src="https://img.shields.io/badge/X-grey?style=for-the-badge&logo=X&logoColor=white" alt="X Badge"/>
+            </a>
+            <a href="https://tryhackme.com/p/Somtheh4cker">
+                <img src="https://img.shields.io/badge/Tryhackme-black?style=for-the-badge&logo=Tryhackme&logoColor=white" alt="Tryhackme Badge"/>
+            </a>
+            <a href="https://app.hackthebox.com/profile/1057390">
+                <img src="https://img.shields.io/badge/HackTheBox-green?style=for-the-badge&logo=Hackthebox&logoColor=black" alt="Hackthebox Badge"/>
+            </a>
+            <a href="https://www.bugbountyhunter.com/hunter/srb1mal">
+                <img src="https://www.bugbountyhunter.com/assets/img/newlogo.png" style="height: 28px;" alt="BugBountyHunter Badge"/>
+            </a>
+        </div>
+        <div id="profile-views">
+            <img src="https://komarev.com/ghpvc/?username=srb1mal&style=flat-square&color=red" alt="Profile Views Counter"/>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section>
+        <h2>Skills</h2>
+        <ul>
+            <li><strong>Application Security</strong></li>
+            <li><strong>Bug Bounty Hunting</strong></li>
+            <li><strong>Linux</strong></li>
+            <li><strong>Project Management</strong></li>
+            <li><strong>MS Office</strong></li>
+        </ul>
+    </section>
+
+    <!-- Certifications Section -->
+    <section>
+        <h2>Certifications</h2>
+        <ul>
+            <li><strong>CAP</strong> - Certified Appsec Practitioner (Mar 2023)</li>
+            <li><strong>CNSP</strong> - Certified Network Security Practitioner (May 2024)</li>
+        </ul>
+    </section>
+
+    <!-- Currently Learning Section -->
+    <section>
+        <h2>Currently Learning</h2>
+        <ul>
+            <li>🔰 <strong>BTech in CSE</strong></li>
+            <li>🔰 <strong>Android Application & API Pentesting</strong></li>
+        </ul>
+    </section>
+
+    <!-- Hobbies Section -->
+    <section>
+        <h2>Hobbies</h2>
+        <ul>
+            <li>🔰 Bike Riding</li>
+            <li>🔰 Watching web-series</li>
+            <li>🔰 Badminton</li>
+        </ul>
+    </section>
+
+    <!-- Footer GIF -->
+    <div id="footer-gif" align="center">
+        <img src="https://media.giphy.com/media/dWesBcTLavkZuG35MI/giphy.gif" width="500" height="200" alt="Footer GIF"/>
     </div>
-  </section>
 
-  <!-- Skills Section -->
-  <section>
-    <h2>Skills</h2>
-    <ul>
-      <li><strong>Application Security</strong></li>
-      <li><strong>Bug Bounty Hunting</strong></li>
-      <li><strong>Linux</strong></li>
-      <li><strong>Project Management</strong></li>
-      <li><strong>MS Office</strong></li>
-    </ul>
-  </section>
+    <script>
+        // Toggle between dark and light mode
+        const toggleButton = document.getElementById('theme-toggle');
+        toggleButton.addEventListener('click', function () {
+            document.body.classList.toggle('light-mode');
+            document.body.classList.toggle('dark-mode');
 
-  <!-- Certifications Section -->
-  <section>
-    <h2>Certifications</h2>
-    <ul>
-      <li><strong>CAP</strong> - Certified Appsec Practitioner (Mar 2023)</li>
-      <li><strong>CNSP</strong> - Certified Network Security Practitioner (May 2024)</li>
-    </ul>
-  </section>
-
-  <!-- Currently Learning Section -->
-  <section>
-    <h2>Currently Learning</h2>
-    <ul>
-      <li>🔰 <strong>BTech in CSE</strong></li>
-      <li>🔰 <strong>Android Application & API Pentesting</strong></li>
-    </ul>
-  </section>
-
-  <!-- Hobbies Section -->
-  <section>
-    <h2>Hobbies</h2>
-    <ul>
-      <li>🔰 Bike Riding</li>
-      <li>🔰 Watching web-series</li>
-      <li>🔰 Badminton</li>
-    </ul>
-  </section>
-
-  <!-- Footer GIF -->
-  <div id="footer-gif" align="center">
-    <img src="https://media.giphy.com/media/dWesBcTLavkZuG35MI/giphy.gif" width="500" height="200" alt="Footer GIF"/>
-  </div>
-
-  <script>
-      // JavaScript for dark/light mode toggle
-      const toggleButton = document.getElementById('theme-toggle');
-      const body = document.body;
-
-      toggleButton.addEventListener('click', () => {
-          body.classList.toggle('light-mode');
-          body.classList.toggle('dark-mode');
-
-          if (body.classList.contains('light-mode')) {
-              toggleButton.textContent = 'Switch to Dark Mode';
-          } else {
-              toggleButton.textContent = 'Switch to Light Mode';
-          }
-      });
-  </script>
+            // Change icon based on theme
+            const icon = toggleButton.querySelector('img');
+            if (document.body.classList.contains('light-mode')) {
+                icon.src = 'https://img.icons8.com/ios-filled/50/000000/moon-symbol.png';
+            } else {
+                icon.src = 'https://img.icons8.com/ios-filled/50/ffffff/sun.png';
+            }
+        });
+    </script>
 </body>
 </html>
