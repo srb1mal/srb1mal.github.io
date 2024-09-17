@@ -4,7 +4,7 @@ body {
     margin: 0;
     padding: 0;
     transition: background-color 0.3s, color 0.3s;
-    cursor: url('https://github.com/srb1mal/srb1mal.github.io/blob/main/cursor.png'), auto; /* Custom cursor */
+    cursor: url('https://raw.githubusercontent.com/srb1mal/srb1mal.github.io/main/cursor.png'), auto; /* Custom cursor */
 }
 
 header {
