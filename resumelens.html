@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResumeLens — AI Resume Analyzer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F5F7FF;--bg2:#FFFFFF;--bg3:#EAECF5;
+  --text1:#0F1225;--text2:#4A5080;--text3:#9BA3C8;
+  --accent:#3B5BDB;--accent2:#7048E8;--accent-light:#EEF2FF;
+  --border:rgba(59,91,219,.12);--border2:rgba(59,91,219,.06);
+  --shadow:0 2px 20px rgba(59,91,219,.08);--shadow-lg:0 8px 40px rgba(59,91,219,.14);
+  --track:rgba(59,91,219,.08);--radius:16px;--rsm:10px;
+  --ease:.3s cubic-bezier(.4,0,.2,1)
+}
+[data-theme="dark"]{
+  --bg:#090C1A;--bg2:#10152A;--bg3:#171E35;
+  --text1:#E8EAFF;--text2:#8892BE;--text3:#454D7A;
+  --accent:#6B8AF7;--accent2:#9B72F5;--accent-light:rgba(107,138,247,.12);
+  --border:rgba(232,234,255,.10);--border2:rgba(232,234,255,.05);
+  --shadow:0 2px 20px rgba(0,0,0,.35);--shadow-lg:0 8px 40px rgba(0,0,0,.45);
+  --track:rgba(232,234,255,.08)
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text1);min-height:100vh;line-height:1.6;transition:background var(--ease),color var(--ease)}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1.5rem,5vw,4rem);height:68px;background:var(--bg);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);transition:background var(--ease)}
+.logo{font-family:'Cormorant Garamond',serif;font-size:1.75rem;font-weight:600;color:var(--text1);text-decoration:none;letter-spacing:.01em}
+.logo span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hdr-r{display:flex;align-items:center;gap:.7rem}
+.badge{font-size:.67rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);background:var(--accent-light);border:1px solid rgba(59,91,219,.20);padding:4px 10px;border-radius:20px}
+.gh-badge{font-size:.67rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:linear-gradient(135deg,#24292e,#404850);border:1px solid rgba(255,255,255,.15);padding:4px 12px;border-radius:20px;display:flex;align-items:center;gap:6px}
+.gh-icon{font-size:13px}
+.tbtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--bg2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all var(--ease);flex-shrink:0}
+.tbtn:hover{background:var(--bg3);transform:scale(1.06)}
+.icon-sun,.icon-moon{display:none;pointer-events:none}
+[data-theme="light"] .icon-sun{display:block}
+[data-theme="dark"]  .icon-moon{display:block}
+
+/* HERO */
+.hero{text-align:center;padding:clamp(3rem,8vw,5.5rem) clamp(1rem,5vw,2rem) clamp(2rem,5vw,3rem)}
+.hero-lbl{font-size:.71rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:1rem;display:block}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,7vw,5.2rem);font-weight:500;line-height:1.1;color:var(--text1);margin-bottom:1.2rem;letter-spacing:-.01em}
+.hero h1 em{font-style:italic;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:1.05rem;color:var(--text2);max-width:520px;margin:0 auto;font-weight:300;line-height:1.7}
+
+/* COPILOT STRIP */
+.copilot-strip{max-width:980px;margin:0 auto 1.5rem;padding:0 clamp(1rem,4vw,2rem)}
+.cstrip-inner{background:linear-gradient(135deg,#24292e 0%,#2d3748 100%);border-radius:var(--radius);padding:1.2rem 1.6rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.cstrip-icon{width:44px;height:44px;background:rgba(255,255,255,.10);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.cstrip-text{flex:1;min-width:0}
+.cstrip-title{font-size:.9rem;font-weight:600;color:#fff;margin-bottom:2px}
+.cstrip-sub{font-size:.77rem;color:rgba(255,255,255,.55)}
+.cstrip-model{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7EE8A2;background:rgba(126,232,162,.12);border:1px solid rgba(126,232,162,.25);padding:4px 10px;border-radius:20px;flex-shrink:0}
+
+main{max-width:980px;margin:0 auto;padding:0 clamp(1rem,4vw,2rem) 4rem}
+
+/* UPLOAD */
+.ucard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;box-shadow:var(--shadow);margin-bottom:2rem}
+.dzone{border:2px dashed var(--border);border-radius:var(--radius);padding:3.5rem 2rem;text-align:center;cursor:pointer;transition:all var(--ease);position:relative;background:var(--bg3)}
+.dzone.over{border-color:var(--accent);background:var(--accent-light);transform:scale(1.01)}
+.dzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dicon{width:64px;height:64px;margin:0 auto 1.2rem;background:var(--accent-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;transition:transform var(--ease)}
+.dzone:hover .dicon{transform:scale(1.1) translateY(-4px)}
+.dtitle{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:500;color:var(--text1);margin-bottom:.4rem}
+.dsub{font-size:.85rem;color:var(--text2);margin-bottom:1rem}
+.ftags{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-top:.8rem}
+.ftag{font-size:.71rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;background:var(--accent-light);color:var(--accent);border:1px solid rgba(59,91,219,.15);padding:3px 12px;border-radius:20px}
+
+.fprev{display:none;margin-top:1.2rem;padding:1rem 1.2rem;background:var(--bg3);border-radius:var(--rsm);border:1px solid var(--border);align-items:center;gap:1rem;flex-wrap:wrap}
+.fprev.show{display:flex}
+.ficon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.ficon.pdf{background:rgba(220,38,38,.12)}.ficon.docx{background:rgba(37,99,235,.12)}
+.finfo{flex:1;overflow:hidden;min-width:120px}
+.fname{font-size:.9rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fsize{font-size:.75rem;color:var(--text3);margin-top:2px}
+
+.abtn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:var(--rsm);padding:.75rem 1.8rem;font-family:'Outfit',sans-serif;font-size:.9rem;font-weight:500;cursor:pointer;transition:all var(--ease);white-space:nowrap;letter-spacing:.02em}
+.abtn:hover{opacity:.9;transform:translateY(-2px);box-shadow:0 6px 24px rgba(59,91,219,.35)}
+.abtn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+.ebox{display:none;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.20);border-radius:var(--rsm);padding:1rem 1.2rem;margin-top:1rem;font-size:.85rem;color:#C93737;line-height:1.5}
+.ebox.show{display:block}
+
+/* LOADING */
+.lstate{display:none;text-align:center;padding:4rem 2rem}
+.lstate.show{display:block}
+.spin-wrap{width:64px;height:64px;margin:0 auto 1.5rem;position:relative}
+.spin-outer{width:64px;height:64px;border:3px solid var(--border);border-top-color:var(--accent);border-right-color:var(--accent2);border-radius:50%;animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ltxt{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--text1);font-style:italic}
+.lsub{font-size:.82rem;color:var(--text3);margin-top:.5rem}
+.lsteps{display:flex;justify-content:center;gap:2rem;margin-top:2rem;flex-wrap:wrap}
+.lstep{font-size:.78rem;color:var(--text3);display:flex;align-items:center;gap:.5rem}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .4s}
+.sdot.active{background:var(--accent);animation:sdp 1s ease-in-out infinite}
+@keyframes sdp{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* RESULTS */
+.rsec{display:none;animation:fadeUp .6s ease both}
+.rsec.show{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+.ocard{background:linear-gradient(160deg,var(--bg2) 60%,var(--accent-light));border:1px solid var(--border);border-radius:var(--radius);padding:3rem 2rem 2.5rem;text-align:center;box-shadow:var(--shadow-lg);margin-bottom:1.5rem;position:relative;overflow:hidden}
+.ocard::before{content:'';position:absolute;top:-80px;right:-80px;width:260px;height:260px;border-radius:50%;background:var(--accent-light);opacity:.5;pointer-events:none}
+
+.slbl{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);font-weight:500;margin-bottom:1.8rem}
+.srw{position:relative;display:inline-block;margin-bottom:1.5rem}
+.sri{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.snum{font-family:'Cormorant Garamond',serif;font-size:3.8rem;font-weight:600;line-height:1;color:var(--text1)}
+.sden{font-size:.82rem;color:var(--text3);margin-top:4px;letter-spacing:.04em}
+.sgrade{font-size:.78rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:5px 18px;border-radius:20px;display:inline-block;margin-bottom:1.4rem}
+.stxt{font-size:.95rem;color:var(--text2);max-width:620px;margin:0 auto;line-height:1.75}
+
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:1rem;margin-bottom:1.5rem}
+.ccard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.4rem 1.5rem;box-shadow:var(--shadow);transition:all var(--ease)}
+.ccard:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.chdr{display:flex;align-items:center;gap:1rem;margin-bottom:1rem}
+.cmini{position:relative;width:66px;height:66px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.cmini svg{transform:rotate(-90deg);position:absolute;inset:0}
+.cnum{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;position:relative;z-index:1}
+.cinfo .cname{font-size:.9rem;font-weight:500;color:var(--text1);margin-bottom:4px}
+.cgpill{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 10px;border-radius:20px;display:inline-block}
+.cbar{height:5px;background:var(--track);border-radius:3px;margin-bottom:.85rem;overflow:hidden}
+.cbar-f{height:100%;border-radius:3px;width:0;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.cfb{font-size:.82rem;color:var(--text2);line-height:1.65}
+
+.tcol{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+@media(max-width:600px){.tcol{grid-template-columns:1fr}}
+.pcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow)}
+.ptitle{font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:500;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border2)}
+.li{display:flex;gap:.7rem;align-items:flex-start;padding:.55rem 0;border-bottom:1px solid var(--border2);font-size:.85rem;line-height:1.55;color:var(--text2)}
+.li:last-child{border-bottom:none;padding-bottom:0}
+.ldot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:1px;font-weight:700}
+.dg{background:rgba(34,160,107,.14);color:#22A06B}
+.da{background:rgba(212,135,11,.14);color:#D4870B}
+
+.asec{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:1.5rem}
+.atbar{padding:1.1rem 1.6rem;border-bottom:1px solid var(--border);font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:500}
+.aitem{border-bottom:1px solid var(--border2)}.aitem:last-child{border-bottom:none}
+.atrig{width:100%;text-align:left;padding:1.1rem 1.6rem;display:flex;align-items:center;justify-content:space-between;background:none;border:none;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--text1);transition:background var(--ease)}
+.atrig:hover{background:var(--bg3)}
+.aleft{display:flex;align-items:center;gap:.75rem;font-size:.9rem;font-weight:500}
+.apill{font-size:.7rem;font-weight:600;padding:3px 10px;border-radius:20px;letter-spacing:.04em}
+.achev{color:var(--text3);font-size:11px;transition:transform var(--ease);flex-shrink:0}
+.atrig.open .achev{transform:rotate(180deg)}
+.abody{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1)}
+.abody.open{max-height:700px}
+.acont{padding:.2rem 1.6rem 1.5rem}
+.afb{font-size:.88rem;color:var(--text2);line-height:1.7;margin-bottom:1.1rem}
+.slbl2{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);font-weight:500;margin-bottom:.7rem}
+.sitem{font-size:.83rem;color:var(--text2);line-height:1.55;border-left:3px solid var(--accent);padding:.55rem .9rem;margin-bottom:.5rem;background:var(--accent-light);border-radius:0 var(--rsm) var(--rsm) 0}
+
+.rrw{text-align:center;padding:.5rem}
+.rbtn{padding:.7rem 1.6rem;border-radius:var(--rsm);font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;background:var(--bg3);color:var(--text2);border:1px solid var(--border);transition:all var(--ease)}
+.rbtn:hover{background:var(--border);transform:translateY(-1px)}
+
+footer{margin-top:3rem;padding:1.5rem clamp(1.5rem,5vw,4rem);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.fbrand{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:500;color:var(--text1)}
+.fbrand span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.fnote{font-size:.78rem;color:var(--text3)}
+@media(max-width:680px){.cgrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="#" class="logo">Resume<span>Lens</span></a>
+  <div class="hdr-r">
+    <span class="badge">AI Powered</span>
+    <span class="gh-badge"><span class="gh-icon">⚙️</span>GitHub Copilot</span>
+    <button class="tbtn" id="themeBtn" aria-label="Toggle theme">
+      <span class="icon-sun">☀️</span>
+      <span class="icon-moon">🌙</span>
+    </button>
+  </div>
+</header>
+
+<div class="hero">
+  <span class="hero-lbl">Intelligent Resume Analysis</span>
+  <h1>Elevate Your<br><em>Career Story</em></h1>
+  <p>Upload your resume and receive a comprehensive AI-powered critique with actionable insights, scores, and professional guidance — in seconds.</p>
+</div>
+
+<!-- GitHub Copilot info strip -->
+<div class="copilot-strip">
+  <div class="cstrip-inner">
+    <div class="cstrip-icon">🤖</div>
+    <div class="cstrip-text">
+      <div class="cstrip-title">Powered by GitHub Models · GPT-4o mini</div>
+      <div class="cstrip-sub">Using GitHub Copilot access via GitHub Models Marketplace</div>
+    </div>
+    <span class="cstrip-model">GPT-4o mini</span>
+  </div>
+</div>
+
+<main>
+  <div class="ucard">
+    <div class="dzone" id="dzone">
+      <input type="file" id="finput" accept=".pdf,.docx" aria-label="Upload resume">
+      <div class="dicon">📄</div>
+      <div class="dtitle">Drop your resume here</div>
+      <div class="dsub">or click to browse from your device</div>
+      <div class="ftags"><span class="ftag">PDF</span><span class="ftag">DOCX</span></div>
+    </div>
+    <div class="fprev" id="fprev">
+      <div class="ficon" id="ficon">📄</div>
+      <div class="finfo"><div class="fname" id="fname">—</div><div class="fsize" id="fsize">—</div></div>
+      <button class="abtn" id="abtn">Analyze Resume →</button>
+    </div>
+    <div class="ebox" id="ebox"></div>
+  </div>
+
+  <div class="lstate" id="lstate">
+    <div class="spin-wrap"><div class="spin-outer"></div></div>
+    <div class="ltxt">Analyzing your resume…</div>
+    <div class="lsub">GPT-4o mini via GitHub Models is reviewing your document.</div>
+    <div class="lsteps">
+      <span class="lstep"><span class="sdot active" id="s1"></span>Extracting text</span>
+      <span class="lstep"><span class="sdot" id="s2"></span>AI analysis</span>
+      <span class="lstep"><span class="sdot" id="s3"></span>Generating scores</span>
+    </div>
+  </div>
+
+  <div class="rsec" id="rsec">
+    <div class="ocard">
+      <div class="slbl">Overall Assessment</div>
+      <div class="srw">
+        <svg width="180" height="180" viewBox="0 0 180 180" style="transform:rotate(-90deg);display:block">
+          <circle cx="90" cy="90" r="76" fill="none" stroke-width="10" stroke="var(--track)"/>
+          <circle id="ocirc" cx="90" cy="90" r="76" fill="none" stroke-width="10"
+            stroke-linecap="round" stroke-dasharray="477.5" stroke-dashoffset="477.5"
+            style="transition:stroke-dashoffset 1.6s cubic-bezier(.4,0,.2,1)"/>
+        </svg>
+        <div class="sri"><span class="snum" id="onum">0</span><span class="sden">/ 100</span></div>
+      </div>
+      <div class="sgrade" id="ograde">—</div>
+      <div class="stxt" id="otxt">—</div>
+    </div>
+
+    <div class="cgrid" id="cgrid"></div>
+
+    <div class="tcol">
+      <div class="pcard"><div class="ptitle">✦ &nbsp;Top Strengths</div><div id="slist"></div></div>
+      <div class="pcard"><div class="ptitle">◈ &nbsp;Critical Improvements</div><div id="ilist"></div></div>
+    </div>
+
+    <div class="asec">
+      <div class="atbar">Detailed Category Breakdown</div>
+      <div id="acc"></div>
+    </div>
+
+    <div class="rrw"><button class="rbtn" id="rbtn">⟳ &nbsp; Analyze Another Resume</button></div>
+  </div>
+</main>
+
+<footer>
+  <div class="fbrand">Resume<span>Lens</span></div>
+  <div class="fnote">Powered by GitHub Models · GPT-4o mini · College Project Demo</div>
+</footer>
+
+<script>
+/* ── CONFIG: Proxy URL (token is hidden inside Cloudflare Worker) ── */
+/* REPLACE the URL below with YOUR Cloudflare Worker URL after deploying */
+const PROXY_URL = 'https://resumelens-proxy.cs-24le-144.workers.dev/analyze';
+const MODEL     = 'gpt-4o-mini';
+
+if (typeof pdfjsLib !== 'undefined')
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+
+if (typeof pdfjsLib !== 'undefined')
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+/* ── THEME ── */
+const html = document.documentElement;
+html.setAttribute('data-theme', localStorage.getItem('rl-t') || 'light');
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const n = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  html.setAttribute('data-theme', n);
+  localStorage.setItem('rl-t', n);
+});
+
+/* ── FILE ── */
+const dzone=document.getElementById('dzone'),finput=document.getElementById('finput');
+const fprev=document.getElementById('fprev'),abtn=document.getElementById('abtn');
+const ebox=document.getElementById('ebox');
+let sel=null;
+
+dzone.addEventListener('dragover',e=>{e.preventDefault();dzone.classList.add('over')});
+dzone.addEventListener('dragleave',()=>dzone.classList.remove('over'));
+dzone.addEventListener('drop',e=>{e.preventDefault();dzone.classList.remove('over');pick(e.dataTransfer.files[0])});
+finput.addEventListener('change',e=>pick(e.target.files[0]));
+
+function pick(f){
+  ebox.classList.remove('show');
+  const ext=f.name.split('.').pop().toLowerCase();
+  if(!['pdf','docx'].includes(ext)){showErr('⚠ Only .pdf and .docx are accepted.');return}
+  sel=f;
+  document.getElementById('fname').textContent=f.name;
+  document.getElementById('fsize').textContent=fmtB(f.size);
+  const fi=document.getElementById('ficon');fi.textContent=ext==='pdf'?'📕':'📘';fi.className='ficon '+ext;
+  fprev.classList.add('show');
+}
+function fmtB(b){return b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB'}
+function showErr(m){ebox.textContent=m;ebox.classList.add('show')}
+
+/* ── EXTRACT ── */
+async function extract(f){
+  if(f.name.endsWith('.pdf')){
+    const buf=await f.arrayBuffer(),pdf=await pdfjsLib.getDocument({data:buf}).promise;
+    let t='';
+    for(let i=1;i<=pdf.numPages;i++){
+      const p=await pdf.getPage(i),c=await p.getTextContent();
+      t+=c.items.map(s=>s.str).join(' ')+'\n';
+    }
+    return t.trim();
+  }else{
+    const buf=await f.arrayBuffer();
+    return (await mammoth.extractRawText({arrayBuffer:buf})).value.trim();
+  }
+}
+
+/* ── AI CALL via secure Cloudflare Worker proxy (token never in frontend) ── */
+async function analyze(text){
+  const prompt=`You are a senior career consultant with 15+ years of resume reviewing experience.
+Analyze the resume below. Reply ONLY with valid JSON — no markdown, no backticks, no extra text.
+
+Resume:
+---
+${text.substring(0,8000)}
+---
+
+Return this exact JSON:
+{
+  "overall": <0-100>,
+  "summary": "<2-3 sentence assessment>",
+  "content":    { "score":<0-100>, "feedback":"<2-3 sentences>", "suggestions":["<s>","<s>","<s>"] },
+  "skills":     { "score":<0-100>, "feedback":"<2-3 sentences>", "suggestions":["<s>","<s>","<s>"] },
+  "formatting": { "score":<0-100>, "feedback":"<2-3 sentences>", "suggestions":["<s>","<s>","<s>"] },
+  "impact":     { "score":<0-100>, "feedback":"<2-3 sentences>", "suggestions":["<s>","<s>","<s>"] },
+  "ats":        { "score":<0-100>, "feedback":"<2-3 sentences>", "suggestions":["<s>","<s>","<s>"] },
+  "topStrengths":["<s>","<s>","<s>"],
+  "criticalImprovements":["<i>","<i>","<i>"]
+}`;
+
+  /* Calls YOUR Cloudflare Worker — token lives there, never here */
+  const res=await fetch(PROXY_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:MODEL,temperature:0.3,max_tokens:2048,
+      messages:[{role:'system',content:'You are a professional resume analyst. Always respond with pure JSON only.'},
+                {role:'user',content:prompt}]})
+  });
+
+  if(!res.ok){
+    const e=await res.json().catch(()=>({}));
+    throw new Error(e?.error?.message||'Proxy error '+res.status+'. Check your Cloudflare Worker is deployed.');
+  }
+
+  const d=await res.json();
+  let raw=d.choices?.[0]?.message?.content||'';
+  raw=raw.replace(/```json|```/g,'').trim();
+  return JSON.parse(raw);
+}
+
+/* ── CLICK ── */
+abtn.addEventListener('click',async()=>{
+  if(!sel)return;
+  ebox.classList.remove('show');abtn.disabled=true;
+  document.getElementById('lstate').classList.add('show');
+  document.getElementById('rsec').classList.remove('show');
+
+  const sids=['s1','s2','s3'];let si=0;
+  sids.forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById(sids[0]).classList.add('active');
+  const st=setInterval(()=>{if(++si<sids.length){sids.forEach(id=>document.getElementById(id).classList.remove('active'));document.getElementById(sids[si]).classList.add('active')}},5000);
+
+  try{
+    const text=await extract(sel);
+    if(!text||text.length<60)throw new Error('Could not read text. Try a text-based PDF or DOCX.');
+    const res=await analyze(text);
+    clearInterval(st);
+    document.getElementById('lstate').classList.remove('show');
+    render(res);
+    document.getElementById('rsec').classList.add('show');
+    setTimeout(()=>document.getElementById('rsec').scrollIntoView({behavior:'smooth',block:'start'}),100);
+  }catch(e){
+    clearInterval(st);
+    document.getElementById('lstate').classList.remove('show');
+    showErr('✗ '+( e.message||'Analysis failed. Please try again.'));
+  }
+  abtn.disabled=false;
+});
+
+/* ── HELPERS ── */
+const CATS=[
+  {key:'content',label:'Content Quality',icon:'✍️'},
+  {key:'skills',label:'Skills & Keywords',icon:'🛠️'},
+  {key:'formatting',label:'Formatting & Structure',icon:'📐'},
+  {key:'impact',label:'Impact & Achievements',icon:'🚀'},
+  {key:'ats',label:'ATS Compatibility',icon:'🤖'}
+];
+const COL=s=>s>=85?'#22A06B':s>=70?'#3B82F6':s>=55?'#D4870B':s>=40?'#E05C1E':'#C93737';
+const BG=s=>s>=85?'rgba(34,160,107,.13)':s>=70?'rgba(59,130,246,.13)':s>=55?'rgba(212,135,11,.13)':s>=40?'rgba(224,92,30,.13)':'rgba(201,55,55,.13)';
+const LBL=s=>s>=85?'Excellent':s>=70?'Good':s>=55?'Fair':s>=40?'Needs Work':'Poor';
+
+function render(d){
+  const oc=document.getElementById('ocirc');
+  oc.setAttribute('stroke',COL(d.overall));
+  const gr=document.getElementById('ograde');
+  gr.textContent=LBL(d.overall);gr.style.background=BG(d.overall);gr.style.color=COL(d.overall);
+  document.getElementById('otxt').textContent=d.summary||'';
+  setTimeout(()=>{oc.style.strokeDashoffset=(477.5*(1-d.overall/100)).toFixed(2);animN('onum',0,d.overall,1500)},200);
+
+  const grid=document.getElementById('cgrid');grid.innerHTML='';
+  CATS.forEach(c=>{
+    const it=d[c.key]||{},s=it.score||0,col=COL(s),bg=BG(s);
+    const r=28,circ=+(2*Math.PI*r).toFixed(2),off=+(circ*(1-s/100)).toFixed(2);
+    const card=document.createElement('div');card.className='ccard';
+    card.innerHTML=`
+      <div class="chdr">
+        <div class="cmini">
+          <svg width="66" height="66" viewBox="0 0 66 66">
+            <circle cx="33" cy="33" r="${r}" fill="none" stroke-width="7" stroke="var(--track)"/>
+            <circle class="marc" cx="33" cy="33" r="${r}" fill="none" stroke-width="7"
+              stroke="${col}" stroke-linecap="round"
+              stroke-dasharray="${circ}" stroke-dashoffset="${circ}"
+              style="transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)"/>
+          </svg>
+          <span class="cnum" style="color:${col}">${s}</span>
+        </div>
+        <div class="cinfo">
+          <div class="cname">${c.icon}&nbsp; ${c.label}</div>
+          <span class="cgpill" style="background:${bg};color:${col}">${LBL(s)}</span>
+        </div>
+      </div>
+      <div class="cbar"><div class="cbar-f" style="background:${col}"></div></div>
+      <div class="cfb">${it.feedback||''}</div>`;
+    grid.appendChild(card);
+    setTimeout(()=>{card.querySelector('.marc').style.strokeDashoffset=off;card.querySelector('.cbar-f').style.width=s+'%'},350);
+  });
+
+  document.getElementById('slist').innerHTML=(d.topStrengths||[]).map(s=>`<div class="li"><span class="ldot dg">✓</span><span>${s}</span></div>`).join('');
+  document.getElementById('ilist').innerHTML=(d.criticalImprovements||[]).map(s=>`<div class="li"><span class="ldot da">!</span><span>${s}</span></div>`).join('');
+
+  const acc=document.getElementById('acc');acc.innerHTML='';
+  CATS.forEach((c,i)=>{
+    const it=d[c.key]||{},s=it.score||0,col=COL(s),bg=BG(s);
+    const el=document.createElement('div');el.className='aitem';
+    el.innerHTML=`
+      <button class="atrig" data-i="${i}">
+        <span class="aleft"><span>${c.icon}</span><span>${c.label}</span>
+          <span class="apill" style="background:${bg};color:${col}">${s}/100</span></span>
+        <span class="achev">▼</span>
+      </button>
+      <div class="abody" data-b="${i}">
+        <div class="acont">
+          <p class="afb">${it.feedback||''}</p>
+          <div class="slbl2">Recommendations</div>
+          ${(it.suggestions||[]).map(sg=>`<div class="sitem">${sg}</div>`).join('')}
+        </div>
+      </div>`;
+    acc.appendChild(el);
+  });
+  acc.querySelectorAll('.atrig').forEach(b=>b.addEventListener('click',()=>{
+    const idx=b.dataset.i,body=acc.querySelector(`[data-b="${idx}"]`),open=b.classList.contains('open');
+    acc.querySelectorAll('.atrig').forEach(x=>x.classList.remove('open'));
+    acc.querySelectorAll('.abody').forEach(x=>x.classList.remove('open'));
+    if(!open){b.classList.add('open');body.classList.add('open')}
+  }));
+}
+
+function animN(id,from,to,dur){
+  const el=document.getElementById(id),t0=performance.now();
+  (function f(now){const p=Math.min((now-t0)/dur,1);el.textContent=Math.round(from+(to-from)*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)})(t0);
+}
+
+document.getElementById('rbtn').addEventListener('click',()=>{
+  sel=null;finput.value='';fprev.classList.remove('show');
+  document.getElementById('rsec').classList.remove('show');
+  ebox.classList.remove('show');abtn.disabled=false;
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+</script>
+</body>
+</html>
