@@ -1588,7 +1588,7 @@ function renderResults(d) {
         <div class="recs-title">Specific Recommendations</div>
         ${recs}
       </div>`;
-    acc.appendChild(item);
+    accEl.appendChild(item);
   });
   accEl.querySelectorAll('.acc-btn').forEach(btn => {
     btn.addEventListener('click', () => {
