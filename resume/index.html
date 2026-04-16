@@ -767,47 +767,7 @@ main {
 .p-md { background: var(--amber-tint); color: var(--amber); border: 1px solid rgba(217,119,6,.2); }
 .p-lo { background: var(--green-tint); color: var(--green); border: 1px solid rgba(5,150,105,.2); }
 
-/* ── YouTube ── */
-.yt-note {
-  font-size: .8rem; color: var(--t3); margin-bottom: 1rem;
-  padding: .5rem .9rem; border-radius: var(--r3);
-  background: var(--surface2); border: 1px solid var(--border);
-  display: inline-block;
-}
-.yt-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
-  gap: 1rem; margin-bottom: 1.5rem;
-}
-.yt-card {
-  border-radius: var(--r2); overflow: hidden;
-  background: var(--surface); border: 1px solid var(--border);
-  box-shadow: var(--sh); text-decoration: none;
-  transition: all var(--ease); display: block;
-}
-.yt-card:hover { transform: translateY(-3px); box-shadow: var(--sh-md); }
-.yt-thumb-wrap { position: relative; aspect-ratio: 16/9; overflow: hidden; }
-.yt-thumb-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.yt-play {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,.3);
-  opacity: 0; transition: opacity var(--ease);
-}
-.yt-card:hover .yt-play { opacity: 1; }
-.yt-play-btn {
-  width: 42px; height: 42px; border-radius: 50%;
-  background: rgba(255,255,255,.95);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1rem; padding-left: 3px;
-}
-.yt-dur {
-  position: absolute; bottom: 6px; right: 6px;
-  background: rgba(0,0,0,.75); color: white;
-  font-size: .65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;
-}
-.yt-info { padding: .7rem .8rem; }
-.yt-title   { font-size: .8rem; font-weight: 700; color: var(--t1); line-height: 1.4; margin-bottom: .25rem; }
-.yt-channel { font-size: .72rem; color: var(--t3); }
+
 
 /* ── Reset Button ── */
 .reset-zone { text-align: center; padding: 1rem 0; }
@@ -891,7 +851,6 @@ footer {
       <span class="fpill">🎯 JD Matching</span>
       <span class="fpill">📡 Domain Detection</span>
       <span class="fpill">💪 Strength Meter</span>
-      <span class="fpill">▶ YouTube Picks</span>
     </div>
     <div class="mode-tabs">
       <button class="mtab active" id="modeGeneral">📄 General Analysis</button>
@@ -1113,11 +1072,6 @@ footer {
     <div class="sec-head"><span class="sec-head-title">Domain-Specific Tips</span><div class="sec-head-line"></div></div>
     <div class="tips-grid" id="tipsGrid"></div>
 
-    <!-- YouTube -->
-    <div class="sec-head"><span class="sec-head-title">Recommended Learning</span><div class="sec-head-line"></div></div>
-    <div class="yt-note" id="ytNote">✦ Curated videos to strengthen your resume</div>
-    <div class="yt-grid" id="ytGrid"></div>
-
     <div class="reset-zone">
       <button class="btn-reset" id="resetBtn">⟳ &nbsp;Analyze Another Resume</button>
     </div>
@@ -1319,48 +1273,6 @@ async function extractText(file) {
   }
 }
 
-/* ════ YOUTUBE DATA ════ */
-const YT_VIDEOS = {
-  default: [
-    { id:'Hh_LmaBV_gQ', title:'Write an Incredible Resume: 5 Golden Rules', ch:'Jeff Su', dur:'9:12' },
-    { id:'BYGbKn7OhVc', title:'Resume That Got Me Into Google, Microsoft & Amazon', ch:'Jeff Su', dur:'12:44' },
-    { id:'KFCyKIOBBkQ', title:'How to Write a Resume Step by Step', ch:'Indeed', dur:'7:45' },
-    { id:'ci1_EBBrEDQ', title:'How To Write The BEST Resume in 2024', ch:'Prof. Heather Austin', dur:'15:22' },
-  ],
-  data_science: [
-    { id:'GduDPL0HQHw', title:'How to Get Your First Data Science Job', ch:'Ken Jee', dur:'18:02' },
-    { id:'aOqoiI8pAYA', title:'Data Science Resume Tips', ch:'Alex The Analyst', dur:'14:30' },
-    { id:'Hh_LmaBV_gQ', title:'5 Golden Resume Rules', ch:'Jeff Su', dur:'9:12' },
-    { id:'xrhPjE7wHas', title:'Build a Data Science Portfolio', ch:'Ken Jee', dur:'22:10' },
-  ],
-  web_dev: [
-    { id:'l5mG5sCbCBk', title:'Web Developer Resume Tips & Tricks', ch:'Traversy Media', dur:'18:30' },
-    { id:'lnRluMFUHkk', title:'Build a Standout Developer Portfolio', ch:'Kevin Powell', dur:'20:15' },
-    { id:'BYGbKn7OhVc', title:'Resume That Got Me Into Top Tech Companies', ch:'Jeff Su', dur:'12:44' },
-    { id:'Hh_LmaBV_gQ', title:'5 Golden Resume Rules for Developers', ch:'Jeff Su', dur:'9:12' },
-  ],
-  cybersecurity: [
-    { id:'CRf9bnQQhzs', title:'How to Get Into Cybersecurity (No Degree)', ch:'NetworkChuck', dur:'24:15' },
-    { id:'HFVf_jzQZKk', title:'Cybersecurity Career Roadmap 2024', ch:'Professor Messer', dur:'16:40' },
-    { id:'Hh_LmaBV_gQ', title:'5 Golden Resume Rules', ch:'Jeff Su', dur:'9:12' },
-    { id:'KFCyKIOBBkQ', title:'How to Write a Technical Resume', ch:'Indeed', dur:'7:45' },
-  ],
-  cloud_devops: [
-    { id:'Wvf0mBNGjXY', title:'DevOps Engineer Resume & Portfolio Guide', ch:'TechWorld with Nana', dur:'21:30' },
-    { id:'BYGbKn7OhVc', title:'Resume That Got Me Into Top Companies', ch:'Jeff Su', dur:'12:44' },
-    { id:'Hh_LmaBV_gQ', title:'5 Golden Resume Rules', ch:'Jeff Su', dur:'9:12' },
-    { id:'KFCyKIOBBkQ', title:'How to Write a Technical Resume', ch:'Indeed', dur:'7:45' },
-  ],
-};
-
-function getVideos(domain) {
-  const k = (domain || '').toLowerCase();
-  if (k.includes('data') || k.includes('machine') || k.includes('ml')) return YT_VIDEOS.data_science;
-  if (k.includes('web') || k.includes('frontend') || k.includes('backend') || k.includes('full')) return YT_VIDEOS.web_dev;
-  if (k.includes('cyber') || k.includes('security')) return YT_VIDEOS.cybersecurity;
-  if (k.includes('cloud') || k.includes('devops')) return YT_VIDEOS.cloud_devops;
-  return YT_VIDEOS.default;
-}
 
 /* ════ DOMAIN META ════ */
 const DOMAIN_META = {
@@ -1676,7 +1588,7 @@ function renderResults(d) {
         <div class="recs-title">Specific Recommendations</div>
         ${recs}
       </div>`;
-    accEl.appendChild(item);
+    acc.appendChild(item);
   });
   accEl.querySelectorAll('.acc-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1704,27 +1616,8 @@ function renderResults(d) {
     tg.appendChild(card);
   });
 
-  /* YouTube */
-  const videos = getVideos(d.domain);
-  document.getElementById('ytNote').textContent = `✦ Curated videos to strengthen your ${d.domain||'career'} resume`;
-  const yg = document.getElementById('ytGrid'); yg.innerHTML = '';
-  videos.forEach(v => {
-    const a = document.createElement('a');
-    a.className = 'yt-card'; a.href = `https://www.youtube.com/watch?v=${v.id}`;
-    a.target = '_blank'; a.rel = 'noopener noreferrer';
-    a.innerHTML = `
-      <div class="yt-thumb-wrap">
-        <img src="https://img.youtube.com/vi/${v.id}/mqdefault.jpg" alt="${v.title}" loading="lazy">
-        <div class="yt-play"><div class="yt-play-btn">▶</div></div>
-        <span class="yt-dur">${v.dur}</span>
-      </div>
-      <div class="yt-info">
-        <div class="yt-title">${v.title}</div>
-        <div class="yt-channel">▶ ${v.ch}</div>
-      </div>`;
-    yg.appendChild(a);
-  });
 }
+
 
 /* ════ ANIMATE NUMBER ════ */
 function animateNum(id, from, to, duration) {
