@@ -1,273 +1,889 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bimal Kumar Sahoo - Profile</title>
-    <style>
-        /* Root variables for theme colors */
-        :root {
-            --primary-bg-color-dark: #2e2e2e;
-            --primary-bg-color-light: #f4f4f4;
-            --primary-text-color-dark: #e0e0e0;
-            --primary-text-color-light: #333333;
-            --secondary-bg-color-dark: #383838;
-            --secondary-bg-color-light: #ffffff;
-            --accent-color: #007bff;
-            --hover-color-dark: #555555;
-            --hover-color-light: #e0e0e0;
-            --text-hover-color: #000000;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bimal Kumar Sahoo | AppSec Engineer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-        /* Default dark mode */
-        body.dark-mode {
-            background-color: var(--primary-bg-color-dark);
-            color: var(--primary-text-color-dark);
-            cursor: url('https://icons.iconarchive.com/icons/aha-soft/free-large-boss/48/Boss-Mouse-icon.png'), auto;
-        }
+  <style>
+    /* ─── TOKENS ───────────────────────────────────────────── */
+    :root {
+      --green:       #00ff9d;
+      --green-dim:   #00cc7a;
+      --green-glow:  rgba(0,255,157,.25);
+      --red:         #ff3c5a;
+      --blue:        #00b4ff;
+      --yellow:      #ffe600;
 
-        body.light-mode {
-            background-color: var(--primary-bg-color-light);
-            color: var(--primary-text-color-light);
-            cursor: url('https://icons.iconarchive.com/icons/aha-soft/free-large-boss/48/Boss-Mouse-icon.png'), auto;
-        }
+      --bg:          #080b0f;
+      --bg2:         #0d1117;
+      --bg3:         #111820;
+      --surface:     rgba(13,17,23,.85);
+      --border:      rgba(0,255,157,.12);
+      --border-hi:   rgba(0,255,157,.35);
+      --text:        #c9d1d9;
+      --text-muted:  #5a6a7a;
+      --text-hi:     #e6edf3;
 
-        body {
-            font-family: 'Courier New', Courier, monospace;
-            margin: 0;
-            padding: 0;
-            transition: background-color 0.3s, color 0.3s;
-            cursor: url('https://raw.githubusercontent.com/srb1mal/srb1mal.github.io/main/cursor.png'), auto; /* Custom cursor */
-        }
+      --ff-head:  'Orbitron', sans-serif;
+      --ff-ui:    'Rajdhani', sans-serif;
+      --ff-mono:  'Share Tech Mono', monospace;
 
-        /* Heading styling */
-        h1, h2 {
-            font-weight: 600;
-            color: inherit;
-        }
+      --radius:  10px;
+      --trans:   .3s ease;
+    }
 
-        h1 {
-            font-size: 2em;
-            margin-top: 20px;
-            text-align: center;
-        }
+    [data-theme="light"] {
+      --bg:         #f0f4f8;
+      --bg2:        #ffffff;
+      --bg3:        #e8edf3;
+      --surface:    rgba(255,255,255,.9);
+      --border:     rgba(0,180,100,.18);
+      --border-hi:  rgba(0,180,100,.5);
+      --text:       #24292f;
+      --text-muted: #6e7781;
+      --text-hi:    #0d1117;
+      --green:      #007a4d;
+      --green-dim:  #005c39;
+      --green-glow: rgba(0,122,77,.2);
+    }
 
-        h2 {
-            font-size: 1.5em;
-            margin-bottom: 10px;
-            text-align: center;
-        }
+    /* ─── RESET ────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
 
-        /* Section styling with hover effect */
-        section {
-            margin: 20px auto;
-            padding: 20px;
-            max-width: 900px;
-            background-color: var(--secondary-bg-color-dark);
-            border-radius: 8px;
-            transition: background-color 0.3s;
-        }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--ff-ui);
+      font-size: 16px;
+      line-height: 1.65;
+      overflow-x: hidden;
+      transition: background var(--trans), color var(--trans);
+    }
 
-        body.light-mode section {
-            background-color: var(--secondary-bg-color-light);
-        }
+    /* ─── SCANLINE OVERLAY (dark only) ─────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 999;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0,0,0,.03) 0px,
+        rgba(0,0,0,.03) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      opacity: 1;
+      transition: opacity var(--trans);
+    }
+    [data-theme="light"] body::before { opacity: 0; }
 
-        section:hover {
-            background-color: var(--hover-color-dark);
-        }
+    /* ─── NOISE TEXTURE ─────────────────────────────────────── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 998;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 180px;
+      opacity: .6;
+      transition: opacity var(--trans);
+    }
+    [data-theme="light"] body::after { opacity: .2; }
 
-        body.light-mode section:hover {
-            background-color: var(--hover-color-light);
-        }
+    /* ─── CANVAS PARTICLES ──────────────────────────────────── */
+    #particle-canvas {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      opacity: .5;
+    }
 
-        /* Links styling */
-        a {
-            color: var(--accent-color);
-            text-decoration: none;
-            transition: color 0.2s;
-            display: flex;
-            align-items: center;
-        }
+    /* ─── LAYOUT ────────────────────────────────────────────── */
+    .wrapper {
+      position: relative; z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
 
-        a:hover {
-            color: var(--text-hover-color);
-        }
+    /* ─── THEME TOGGLE ──────────────────────────────────────── */
+    #theme-btn {
+      position: fixed; top: 22px; right: 22px; z-index: 1000;
+      width: 46px; height: 46px;
+      background: var(--bg3);
+      border: 1px solid var(--border-hi);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 14px var(--green-glow);
+      transition: all var(--trans);
+    }
+    #theme-btn:hover { transform: rotate(20deg) scale(1.1); box-shadow: 0 0 24px var(--green-glow); }
 
-        /* Social badges styling */
-        #badges {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
+    /* ─── HERO ──────────────────────────────────────────────── */
+    .hero {
+      padding: 100px 0 60px;
+      text-align: center;
+      position: relative;
+    }
 
-        #badges a {
-            margin: 10px;
-            display: flex;
-            align-items: center;
-        }
+    .hero-badge {
+      display: inline-block;
+      font-family: var(--ff-mono);
+      font-size: .72rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--green);
+      border: 1px solid var(--border-hi);
+      padding: 5px 16px;
+      border-radius: 100px;
+      margin-bottom: 28px;
+      animation: fadeSlideUp .8s ease both;
+    }
 
-        #badges img {
-            height: 28px;
-            margin-right: 8px;
-        }
+    .hero-name {
+      font-family: var(--ff-head);
+      font-size: clamp(2.2rem, 6vw, 4.2rem);
+      font-weight: 900;
+      letter-spacing: -1px;
+      color: var(--text-hi);
+      line-height: 1.1;
+      margin-bottom: 10px;
+      animation: fadeSlideUp .8s .15s ease both;
+    }
+    .hero-name span { color: var(--green); }
 
-        /* Footer GIF styling */
-        #footer-gif {
-            margin-top: 30px;
-        }
+    .hero-handle {
+      font-family: var(--ff-mono);
+      color: var(--text-muted);
+      font-size: .95rem;
+      margin-bottom: 22px;
+      animation: fadeSlideUp .8s .25s ease both;
+    }
+    .hero-handle b { color: var(--green); }
 
-        /* Toggle button */
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
+    .typing-line {
+      font-family: var(--ff-mono);
+      font-size: 1rem;
+      color: var(--green);
+      min-height: 1.5em;
+      animation: fadeSlideUp .8s .35s ease both;
+    }
+    .cursor { display: inline-block; animation: blink 1s step-start infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
 
-        .theme-toggle:hover {
-            background-color: var(--text-hover-color);
-        }
+    .hero-stats {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 16px;
+      margin-top: 40px;
+      animation: fadeSlideUp .8s .5s ease both;
+    }
+    .stat-pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 8px 22px;
+      font-family: var(--ff-mono);
+      font-size: .82rem;
+    }
+    .stat-pill b { color: var(--green); }
 
-        .theme-toggle img {
-            width: 24px;
-            height: 24px;
-        }
+    /* ─── SECTION COMMONS ───────────────────────────────────── */
+    section { margin-bottom: 56px; }
 
-        /* Responsive settings */
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 1.8em;
-            }
+    .sec-label {
+      display: flex; align-items: center; gap: 12px;
+      font-family: var(--ff-mono);
+      font-size: .7rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 28px;
+    }
+    .sec-label::before {
+      content: '//';
+      opacity: .5;
+    }
+    .sec-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
 
-            h2 {
-                font-size: 1.2em;
-            }
+    /* ─── CARDS ─────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      backdrop-filter: blur(12px);
+      transition: border-color var(--trans), box-shadow var(--trans), transform .2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--green), transparent);
+      opacity: 0;
+      transition: opacity var(--trans);
+    }
+    .card:hover::before { opacity: 1; }
+    .card:hover {
+      border-color: var(--border-hi);
+      box-shadow: 0 0 30px var(--green-glow), 0 8px 32px rgba(0,0,0,.25);
+      transform: translateY(-3px);
+    }
 
-            section {
-                padding: 15px;
-                margin: 10px auto;
-                width: 90%;
-            }
+    /* ─── ABOUT ─────────────────────────────────────────────── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .about-text { font-size: 1.05rem; color: var(--text); line-height: 1.8; }
+    .about-text p { margin-bottom: 14px; }
+    .about-text a { color: var(--green); text-decoration: none; }
+    .about-text a:hover { text-decoration: underline; }
 
-            .theme-toggle {
-                width: 40px;
-                height: 40px;
-            }
+    .about-info-card { display: flex; flex-direction: column; gap: 12px; }
+    .info-row {
+      display: flex; align-items: center; gap: 12px;
+      font-size: .92rem;
+    }
+    .info-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+    }
+    .info-label { color: var(--text-muted); font-size: .78rem; font-family: var(--ff-mono); }
+    .info-val { color: var(--text-hi); font-weight: 600; }
 
-            .theme-toggle img {
-                width: 20px;
-                height: 20px;
-            }
-        }
-    </style>
+    /* ─── EXPERIENCE ────────────────────────────────────────── */
+    .exp-list { display: flex; flex-direction: column; gap: 20px; }
+
+    .exp-card { position: relative; padding-left: 20px; }
+    .exp-card::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, var(--green), transparent);
+      border-radius: 2px;
+    }
+
+    .exp-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+    .exp-role { font-family: var(--ff-head); font-size: 1rem; font-weight: 600; color: var(--text-hi); }
+    .exp-badge {
+      font-family: var(--ff-mono); font-size: .68rem; padding: 3px 10px;
+      border-radius: 100px; border: 1px solid var(--border-hi);
+      color: var(--green); letter-spacing: 1px;
+      white-space: nowrap;
+    }
+    .exp-org { font-size: .9rem; color: var(--green); font-weight: 600; margin-bottom: 4px; }
+    .exp-dates { font-family: var(--ff-mono); font-size: .75rem; color: var(--text-muted); margin-bottom: 12px; }
+    .exp-bullets { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .exp-bullets li { font-size: .92rem; color: var(--text); padding-left: 18px; position: relative; }
+    .exp-bullets li::before { content: '▸'; position: absolute; left: 0; color: var(--green); }
+
+    /* ─── CERTS ─────────────────────────────────────────────── */
+    .certs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+
+    .cert-card {
+      display: flex; align-items: center; gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      transition: all var(--trans);
+    }
+    .cert-card:hover {
+      border-color: var(--border-hi);
+      box-shadow: 0 0 20px var(--green-glow);
+      transform: translateY(-2px);
+    }
+    .cert-icon {
+      width: 48px; height: 48px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+    }
+    .cert-name { font-family: var(--ff-head); font-size: .85rem; font-weight: 700; color: var(--text-hi); margin-bottom: 3px; }
+    .cert-issuer { font-size: .8rem; color: var(--text-muted); }
+    .cert-date { font-family: var(--ff-mono); font-size: .72rem; color: var(--green); margin-top: 3px; }
+
+    /* ─── SKILLS ─────────────────────────────────────────────── */
+    .skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    .skill-group-title {
+      font-family: var(--ff-mono); font-size: .75rem; color: var(--green);
+      letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px;
+    }
+    .skill-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .skill-tag {
+      font-family: var(--ff-mono); font-size: .75rem;
+      padding: 5px 13px; border-radius: 6px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      transition: all .2s;
+      cursor: default;
+    }
+    .skill-tag:hover { border-color: var(--green); color: var(--green); box-shadow: 0 0 10px var(--green-glow); }
+    .skill-tag.hi { border-color: rgba(0,255,157,.3); color: var(--green); }
+
+    /* ─── CONNECT ─────────────────────────────────────────────── */
+    .connect-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; }
+
+    .social-card {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      text-decoration: none;
+      color: var(--text);
+      transition: all var(--trans);
+    }
+    .social-card:hover {
+      border-color: var(--border-hi);
+      color: var(--text-hi);
+      box-shadow: 0 0 20px var(--green-glow);
+      transform: translateY(-2px);
+    }
+    .social-icon {
+      width: 38px; height: 38px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }
+    .social-name { font-family: var(--ff-head); font-size: .8rem; font-weight: 600; }
+    .social-handle { font-family: var(--ff-mono); font-size: .7rem; color: var(--text-muted); margin-top: 1px; }
+
+    /* ─── EDUCATION ───────────────────────────────────────────── */
+    .edu-card { display: flex; gap: 20px; }
+    .edu-line { display: flex; flex-direction: column; align-items: center; gap: 0; flex-shrink: 0; }
+    .edu-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--green); flex-shrink: 0; box-shadow: 0 0 10px var(--green); }
+    .edu-rail { flex: 1; width: 2px; background: var(--border); }
+    .edu-content { padding-bottom: 24px; }
+    .edu-deg { font-family: var(--ff-head); font-size: .95rem; font-weight: 700; color: var(--text-hi); margin-bottom: 4px; }
+    .edu-inst { color: var(--green); font-size: .9rem; font-weight: 600; margin-bottom: 4px; }
+    .edu-meta { font-family: var(--ff-mono); font-size: .75rem; color: var(--text-muted); }
+
+    /* ─── HOBBIES ─────────────────────────────────────────────── */
+    .hobby-list { display: flex; flex-wrap: wrap; gap: 12px; }
+    .hobby-pill {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 9px 20px;
+      font-size: .9rem;
+      transition: all var(--trans);
+    }
+    .hobby-pill:hover { border-color: var(--border-hi); box-shadow: 0 0 14px var(--green-glow); }
+
+    /* ─── FOOTER ──────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 40px 0 20px;
+      font-family: var(--ff-mono);
+      font-size: .78rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+    footer span { color: var(--green); }
+
+    /* ─── ANIMATIONS ──────────────────────────────────────────── */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ─── GLITCH ──────────────────────────────────────────────── */
+    .glitch {
+      position: relative;
+    }
+    .glitch::before, .glitch::after {
+      content: attr(data-text);
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+    .glitch::before {
+      color: var(--red); clip-path: polygon(0 0,100% 0,100% 35%,0 35%);
+      animation: glitch1 3.5s infinite;
+    }
+    .glitch::after {
+      color: var(--blue); clip-path: polygon(0 65%,100% 65%,100% 100%,0 100%);
+      animation: glitch2 3.5s infinite;
+    }
+    @keyframes glitch1 {
+      0%,94%,100% { transform: none; opacity: 0; }
+      95%          { transform: translate(-3px,1px); opacity: .7; }
+      97%          { transform: translate(3px,-1px); opacity: .7; }
+    }
+    @keyframes glitch2 {
+      0%,94%,100% { transform: none; opacity: 0; }
+      96%          { transform: translate(3px,-1px); opacity: .7; }
+      98%          { transform: translate(-3px,2px); opacity: .7; }
+    }
+
+    /* ─── RESPONSIVE ──────────────────────────────────────────── */
+    @media (max-width: 680px) {
+      .about-grid, .skills-grid { grid-template-columns: 1fr; }
+      .certs-grid { grid-template-columns: 1fr; }
+      .hero-name { font-size: 2rem; }
+      .card { padding: 20px 18px; }
+    }
+  </style>
 </head>
-<body class="dark-mode">
 
-    <!-- Theme Toggle Button -->
-    <button class="theme-toggle" id="theme-toggle">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/sun.png" alt="Toggle Icon"/>
-    </button>
+<body>
+  <canvas id="particle-canvas"></canvas>
 
-    <!-- Header Section -->
-    <div id="header" align="center">
-        <h1>Hi Everyone👋, Welcome to my profile!</h1>
-        <img src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExMHhwdXAxa3Iyb2loa210cGp2NGVwMzhzYjB3enR6YWY2NnM3bmRycyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3knKct3fGqxhK/giphy.gif" width="200" alt="Profile GIF"/>
-    </div>
+  <!-- Theme Toggle -->
+  <button id="theme-btn" aria-label="Toggle theme">🌙</button>
 
-    <!-- Who Am I Section -->
-    <section align="center">
-        <h2>Who Am I?</h2>
-        <p>I am Bimal Kumar Sahoo aka (srb1mal), a username I use on various social platforms. I'm currently pursuing BTech from <em>Synergy Institute of Engineering and Technology</em>.</p>
-    </section>
+  <div class="wrapper">
 
-    <!-- Social Profiles Section -->
-    <section align="center">
-        <h2>Connect with Me</h2>
-        <div id="badges">
-            <a href="https://www.linkedin.com/in/srb1mal">
-                <img src="https://img.shields.io/badge/LinkedIn-skyblue?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn Badge"/>
-            </a>
-            <a href="https://www.x.com/srb1mal">
-                <img src="https://img.shields.io/badge/X-grey?style=for-the-badge&logo=X&logoColor=white" alt="X Badge"/>
-            </a>
-            <a href="https://tryhackme.com/p/Somtheh4cker">
-                <img src="https://img.shields.io/badge/Tryhackme-black?style=for-the-badge&logo=Tryhackme&logoColor=white" alt="Tryhackme Badge"/>
-            </a>
-            <a href="https://app.hackthebox.com/profile/1057390">
-                <img src="https://img.shields.io/badge/HackTheBox-green?style=for-the-badge&logo=Hackthebox&logoColor=black" alt="Hackthebox Badge"/>
-            </a>
-            <a href="https://www.bugbountyhunter.com/hunter/srb1mal">
-                <img src="https://www.bugbountyhunter.com/assets/img/newlogo.png" alt="BugBountyHunter Icon"/>
-                <span>BugBountyHunter</span>
-            </a>
+    <!-- ── HERO ─────────────────────────────────────── -->
+    <header class="hero">
+      <div class="hero-badge">⚡ Application Security Engineer</div>
+
+      <h1 class="hero-name glitch" data-text="BIMAL KUMAR SAHOO">
+        BIMAL <span>KUMAR</span> SAHOO
+      </h1>
+
+      <p class="hero-handle">aka <b>@srb1mal</b> · Red-teamer by day, bug hunter by night</p>
+
+      <div class="typing-line">
+        <span id="typed"></span><span class="cursor">█</span>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat-pill"><b>3+</b> Years XP</div>
+        <div class="stat-pill"><b>70+</b> Assets Tested</div>
+        <div class="stat-pill"><b>75+</b> Bugs Found</div>
+        <div class="stat-pill"><b>3</b> Certifications</div>
+        <div class="stat-pill"><b>Govt of India</b> · NeGD</div>
+      </div>
+    </header>
+
+    <!-- ── ABOUT ─────────────────────────────────────── -->
+    <section class="reveal">
+      <div class="sec-label">About Me</div>
+      <div class="card">
+        <div class="about-grid">
+          <div class="about-text">
+            <p>
+              I'm a <strong style="color:var(--green)">Application Security Engineer</strong> with 3+ years of hands-on experience securing Web, API (REST &amp; SOAP), and Mobile applications. Currently serving at the <strong>National e-Governance Division (NeGD)</strong>, an arm of MeitY, Government of India.
+            </p>
+            <p>
+              I've led VAPT engagements for <strong>40+ Govt of India assets</strong>, including flagship products like DigiLocker, EPFO, Poshan Tracker, API Setu, Meri Pehchaan, and Entity Locker — uncovering high-risk vulnerabilities and design-level security gaps.
+            </p>
+            <p>
+              Active bug bounty hunter on <a href="https://hackerone.com" target="_blank">HackerOne</a>, <a href="https://hackthebox.com" target="_blank">HackTheBox</a>, and <a href="https://bugbountyhunter.com/hunter/srb1mal" target="_blank">BugBountyHunter</a> (Level 4 · 75+ findings).
+            </p>
+          </div>
+
+          <div class="about-info-card">
+            <div class="info-row">
+              <div class="info-icon">📍</div>
+              <div>
+                <div class="info-label">Location</div>
+                <div class="info-val">Odisha, India</div>
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon">🏢</div>
+              <div>
+                <div class="info-label">Current Role</div>
+                <div class="info-val">Executive Security Tester · NeGD</div>
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon">✉️</div>
+              <div>
+                <div class="info-label">Email</div>
+                <div class="info-val" style="font-size:.9rem">bimalsahoo6371@gmail.com</div>
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon">📱</div>
+              <div>
+                <div class="info-label">Mobile</div>
+                <div class="info-val">+91 6371315521</div>
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon">🎓</div>
+              <div>
+                <div class="info-label">Pursuing</div>
+                <div class="info-val">BTech CSE</div>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </section>
 
-    <!-- Skills Section -->
-    <section>
-        <h2>Skills</h2>
-        <ul>
-            <li><strong>Application Security</strong></li>
-            <li><strong>Bug Bounty Hunting</strong></li>
-            <li><strong>Linux</strong></li>
-            <li><strong>Project Management</strong></li>
-            <li><strong>MS Office</strong></li>
-        </ul>
+    <!-- ── EXPERIENCE ─────────────────────────────────── -->
+    <section class="reveal">
+      <div class="sec-label">Experience</div>
+      <div class="exp-list">
+
+        <div class="card exp-card">
+          <div class="exp-header">
+            <div class="exp-role">Executive Security Tester</div>
+            <div class="exp-badge">🟢 Current</div>
+          </div>
+          <div class="exp-org">National e-Governance Division · MeitY, Govt of India</div>
+          <div class="exp-dates">Jan 2024 – Present · Remote</div>
+          <ul class="exp-bullets">
+            <li>Conducted VAPT on 40+ Govt of India assets across DigiLocker, EPFO, ABC/NAD, Poshan Tracker, API Setu, Entity Locker, Meri Pehchaan &amp; more.</li>
+            <li>Participated in external security audits (ISO/IEC 27001, Aadhaar AUA/KUA) — evidence collection, control validation &amp; compliance gap analysis.</li>
+            <li>Authored comprehensive cybersecurity assessment reports for internal and external auditors, meeting regulatory standards.</li>
+            <li>Stack: Burp Suite · Postman · MobSF · Nmap · OWASP ZAP · SQLMap · Frida · Drozer</li>
+          </ul>
+        </div>
+
+        <div class="card exp-card">
+          <div class="exp-header">
+            <div class="exp-role">Penetration Tester L1</div>
+          </div>
+          <div class="exp-org">Qualysec Technologies Pvt. Ltd.</div>
+          <div class="exp-dates">Oct 2022 – Sept 2023 · Bhubaneswar, India</div>
+          <ul class="exp-bullets">
+            <li>Performed 30+ pen-test engagements on Web, API &amp; Mobile apps for clients in SaaS, Tech, Finance, Healthcare &amp; E-Commerce sectors.</li>
+            <li>Identified vulnerabilities including open ports, misconfigurations &amp; logic flaws using Burp Suite, Metasploit, Nmap, Nuclei &amp; more.</li>
+            <li>Delivered clear, detailed penetration testing reports for client stakeholders.</li>
+          </ul>
+        </div>
+
+        <div class="card exp-card">
+          <div class="exp-header">
+            <div class="exp-role">Bug Bounty Hunter</div>
+          </div>
+          <div class="exp-org">HackerOne · Independent</div>
+          <div class="exp-dates">May 2022 – Present · Remote</div>
+          <ul class="exp-bullets">
+            <li>Reported security vulnerabilities to programs of companies including Amazon, Zomato, and more.</li>
+            <li>Active Level 4 member on BugBountyHunter with 75+ web application vulnerability findings.</li>
+            <li>Participated in Live Hacking Events hosted by BugBountyHunter.</li>
+          </ul>
+        </div>
+
+        <div class="card exp-card">
+          <div class="exp-header">
+            <div class="exp-role">Penetration Testing Intern</div>
+          </div>
+          <div class="exp-org">Virtually Testing Foundation</div>
+          <div class="exp-dates">Oct 2021 – Dec 2021</div>
+          <ul class="exp-bullets">
+            <li>Trained in OWASP Top 10, professional pen-test report writing, Burp Suite usage, and vulnerability exploitation techniques.</li>
+            <li>Networked with the global cybersecurity community.</li>
+          </ul>
+        </div>
+
+      </div>
     </section>
 
-    <!-- Certifications Section -->
-    <section>
-        <h2>Certifications</h2>
-        <ul>
-            <li><strong>CAP</strong> - Certified Appsec Practitioner (Mar 2023)</li>
-            <li><strong>CNSP</strong> - Certified Network Security Practitioner (May 2024)</li>
-        </ul>
+    <!-- ── CERTIFICATIONS ─────────────────────────────── -->
+    <section class="reveal">
+      <div class="sec-label">Certifications</div>
+      <div class="certs-grid">
+
+        <div class="cert-card">
+          <div class="cert-icon">🏅</div>
+          <div>
+            <div class="cert-name">eCPPT</div>
+            <div class="cert-issuer">eLearnSecurity / INE</div>
+            <div class="cert-date">📅 Mar 2026</div>
+          </div>
+        </div>
+
+        <div class="cert-card">
+          <div class="cert-icon">🛡️</div>
+          <div>
+            <div class="cert-name">CNSP</div>
+            <div class="cert-issuer">The SecOps Group</div>
+            <div class="cert-date">📅 May 2024</div>
+          </div>
+        </div>
+
+        <div class="cert-card">
+          <div class="cert-icon">🔐</div>
+          <div>
+            <div class="cert-name">CAP</div>
+            <div class="cert-issuer">The SecOps Group</div>
+            <div class="cert-date">📅 Mar 2023</div>
+          </div>
+        </div>
+
+      </div>
     </section>
 
-    <!-- Currently Learning Section -->
-    <section>
-        <h2>Currently Learning</h2>
-        <ul>
-            <li>🔰 <strong>BTech in CSE</strong></li>
-            <li>🔰 <strong>Android Application & API Pentesting</strong></li>
-        </ul>
+    <!-- ── SKILLS & TOOLS ─────────────────────────────── -->
+    <section class="reveal">
+      <div class="sec-label">Skills &amp; Tools</div>
+      <div class="skills-grid">
+
+        <div class="card">
+          <div class="skill-group-title">Core Competencies</div>
+          <div class="skill-tags">
+            <span class="skill-tag hi">Web Pentesting</span>
+            <span class="skill-tag hi">API Security</span>
+            <span class="skill-tag hi">Mobile (Android) Pentesting</span>
+            <span class="skill-tag hi">Bug Bounty Hunting</span>
+            <span class="skill-tag">OWASP Top 10</span>
+            <span class="skill-tag">Network Recon</span>
+            <span class="skill-tag">SSL/TLS Analysis</span>
+            <span class="skill-tag">Security Reporting</span>
+            <span class="skill-tag">ISO 27001 Support</span>
+            <span class="skill-tag">Linux</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="skill-group-title">Toolbelt</div>
+          <div class="skill-tags">
+            <span class="skill-tag hi">Burp Suite</span>
+            <span class="skill-tag hi">OWASP ZAP</span>
+            <span class="skill-tag hi">Postman</span>
+            <span class="skill-tag hi">MobSF</span>
+            <span class="skill-tag">Frida</span>
+            <span class="skill-tag">Drozer</span>
+            <span class="skill-tag">Objection</span>
+            <span class="skill-tag">APKTool</span>
+            <span class="skill-tag">JADX-GUI</span>
+            <span class="skill-tag">Metasploit</span>
+            <span class="skill-tag">Nmap</span>
+            <span class="skill-tag">SQLMap</span>
+            <span class="skill-tag">Nuclei</span>
+            <span class="skill-tag">FFUF</span>
+            <span class="skill-tag">Nikto</span>
+            <span class="skill-tag">JWT Tool</span>
+            <span class="skill-tag">Kiterunner</span>
+            <span class="skill-tag">LSposed</span>
+          </div>
+        </div>
+
+      </div>
     </section>
 
-    <!-- Hobbies Section -->
-    <section>
-        <h2>Hobbies</h2>
-        <ul>
-            <li>🔰 Bike Riding</li>
-            <li>🔰 Watching web-series</li>
-            <li>🔰 Badminton</li>
-        </ul>
+    <!-- ── EDUCATION ──────────────────────────────────── -->
+    <section class="reveal">
+      <div class="sec-label">Education</div>
+      <div class="card">
+
+        <div class="edu-card">
+          <div class="edu-line">
+            <div class="edu-dot"></div>
+            <div class="edu-rail"></div>
+          </div>
+          <div class="edu-content">
+            <div class="edu-deg">BTech in Computer Science Engineering</div>
+            <div class="edu-inst">Synergy Institute of Engineering &amp; Technology</div>
+            <div class="edu-meta">📅 Pursuing · Odisha, India</div>
+          </div>
+        </div>
+
+        <div class="edu-card">
+          <div class="edu-line">
+            <div class="edu-dot"></div>
+          </div>
+          <div class="edu-content">
+            <div class="edu-deg">Diploma in Computer Science Engineering</div>
+            <div class="edu-inst">Baji Rout Institute of Engineering &amp; Technology</div>
+            <div class="edu-meta">📅 Dec 2020 – Aug 2023 · Dhenkanal, Odisha</div>
+          </div>
+        </div>
+
+      </div>
     </section>
 
-    <!-- Footer GIF -->
-    <div id="footer-gif" align="center">
-        <img src="https://media.giphy.com/media/dWesBcTLavkZuG35MI/giphy.gif" width="500" alt="Footer GIF"/>
-    </div>
+    <!-- ── CONNECT ────────────────────────────────────── -->
+    <section class="reveal">
+      <div class="sec-label">Connect</div>
+      <div class="connect-grid">
 
-    <script>
-        document.getElementById('theme-toggle').addEventListener('click', () => {
-            const currentMode = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
-            document.body.classList.toggle('dark-mode');
-            document.body.classList.toggle('light-mode');
-            document.getElementById('theme-toggle').innerHTML = currentMode === 'dark' 
-                ? '<img src="https://img.icons8.com/ios-filled/50/ffffff/moon.png" alt="Toggle Icon"/>'
-                : '<img src="https://img.icons8.com/ios-filled/50/ffffff/sun.png" alt="Toggle Icon"/>';
-        });
-    </script>
+        <a class="social-card" href="https://www.linkedin.com/in/srb1mal" target="_blank">
+          <div class="social-icon" style="background:linear-gradient(135deg,#0077b5,#00a0dc)">💼</div>
+          <div>
+            <div class="social-name">LinkedIn</div>
+            <div class="social-handle">@srb1mal</div>
+          </div>
+        </a>
 
+        <a class="social-card" href="https://www.x.com/srb1mal" target="_blank">
+          <div class="social-icon" style="background:linear-gradient(135deg,#111,#333)">𝕏</div>
+          <div>
+            <div class="social-name">X / Twitter</div>
+            <div class="social-handle">@srb1mal</div>
+          </div>
+        </a>
+
+        <a class="social-card" href="https://tryhackme.com/p/Somtheh4cker" target="_blank">
+          <div class="social-icon" style="background:linear-gradient(135deg,#1b1b2f,#e84d3d)">🎯</div>
+          <div>
+            <div class="social-name">TryHackMe</div>
+            <div class="social-handle">Somtheh4cker</div>
+          </div>
+        </a>
+
+        <a class="social-card" href="https://app.hackthebox.com/profile/1057390" target="_blank">
+          <div class="social-icon" style="background:linear-gradient(135deg,#111,#9fef00)">⬡</div>
+          <div>
+            <div class="social-name">HackTheBox</div>
+            <div class="social-handle">#1057390</div>
+          </div>
+        </a>
+
+        <a class="social-card" href="https://www.bugbountyhunter.com/hunter/srb1mal" target="_blank">
+          <div class="social-icon" style="background:linear-gradient(135deg,#1a1a2e,#e94560)">🐛</div>
+          <div>
+            <div class="social-name">BugBountyHunter</div>
+            <div class="social-handle">@srb1mal · Lv.4</div>
+          </div>
+        </a>
+
+        <a class="social-card" href="https://github.com/srb1mal" target="_blank">
+          <div class="social-icon" style="background:linear-gradient(135deg,#161b22,#444d56)">🐙</div>
+          <div>
+            <div class="social-name">GitHub</div>
+            <div class="social-handle">@srb1mal</div>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- ── HOBBIES ─────────────────────────────────────── -->
+    <section class="reveal">
+      <div class="sec-label">Outside the Terminal</div>
+      <div class="card">
+        <div class="hobby-list">
+          <div class="hobby-pill">🏍️ Bike Riding</div>
+          <div class="hobby-pill">📺 Web Series</div>
+          <div class="hobby-pill">🏸 Badminton</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FOOTER ──────────────────────────────────────── -->
+    <footer>
+      <p>Built with <span>♥</span> by <span>srb1mal</span> · All rights reserved © 2025</p>
+      <p style="margin-top:6px;opacity:.5">root@srb1mal:~$ stay curious, hack ethically</p>
+    </footer>
+
+  </div><!-- /wrapper -->
+
+  <script>
+    /* ── THEME TOGGLE ─────────────────────────── */
+    const btn = document.getElementById('theme-btn');
+    const html = document.documentElement;
+    btn.addEventListener('click', () => {
+      const isDark = html.dataset.theme === 'dark';
+      html.dataset.theme = isDark ? 'light' : 'dark';
+      btn.textContent = isDark ? '🌙' : '🌙';
+      btn.textContent = isDark ? '☀️' : '🌙';
+    });
+
+    /* ── TYPING ANIMATION ─────────────────────── */
+    const lines = [
+      '> Securing Govt of India assets...',
+      '> Breaking apps (ethically) since 2021',
+      '> Web · API · Mobile · Network pentester',
+      '> 75+ bugs found on HackerOne &amp; BBH',
+      '> eCPPT | CNSP | CAP certified',
+    ];
+    let li = 0, ci = 0, deleting = false;
+    const el = document.getElementById('typed');
+    function type() {
+      const raw = lines[li].replace(/&amp;/g, '&');
+      if (!deleting) {
+        el.textContent = raw.slice(0, ++ci);
+        if (ci === raw.length) { deleting = true; setTimeout(type, 2000); return; }
+      } else {
+        el.textContent = raw.slice(0, --ci);
+        if (ci === 0) { deleting = false; li = (li + 1) % lines.length; }
+      }
+      setTimeout(type, deleting ? 28 : 58);
+    }
+    type();
+
+    /* ── SCROLL REVEAL ────────────────────────── */
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+    }, { threshold: .1 });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+    /* ── PARTICLE CANVAS ──────────────────────── */
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, particles;
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function makeParticle() {
+      return {
+        x: Math.random() * W,
+        y: Math.random() * H,
+        vx: (Math.random() - .5) * .4,
+        vy: (Math.random() - .5) * .4,
+        r: Math.random() * 1.5 + .5,
+        a: Math.random(),
+      };
+    }
+    particles = Array.from({ length: 80 }, makeParticle);
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      const isDark = document.documentElement.dataset.theme !== 'light';
+      const col = isDark ? '0,255,157' : '0,122,77';
+
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${col},${p.a * .6})`;
+        ctx.fill();
+      });
+
+      // Draw connecting lines
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 100) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(${col},${(1 - dist / 100) * .15})`;
+            ctx.lineWidth = .5;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
 </body>
 </html>
