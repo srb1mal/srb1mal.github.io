@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VulnScan Pro — Penetration Testing Suite</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #05070f;
+    --bg2:      #080d1a;
+    --bg3:      #0d1525;
+    --border:   #1a2a4a;
+    --green:    #00ff88;
+    --green2:   #00cc66;
+    --red:      #ff2244;
+    --red2:     #cc1133;
+    --yellow:   #ffcc00;
+    --cyan:     #00ccff;
+    --blue:     #3399ff;
+    --orange:   #ff8800;
+    --purple:   #cc44ff;
+    --text:     #c0d0e8;
+    --text2:    #7090b0;
+    --glow-g:   0 0 12px #00ff8866;
+    --glow-r:   0 0 12px #ff224466;
+    --glow-c:   0 0 12px #00ccff66;
+    --glow-y:   0 0 12px #ffcc0066;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── Background Grid ─── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,204,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,204,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ─── Scanline ─── */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ─── Matrix Rain Canvas ─── */
+  #matrixCanvas {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0.03; z-index: 0; pointer-events: none;
+  }
+
+  /* ─── Main Layout ─── */
+  .wrapper { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 20px 60px; }
+
+  /* ─── Header ─── */
+  header {
+    padding: 32px 0 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 32px;
+  }
+  .logo-area { display: flex; align-items: center; gap: 16px; }
+  .logo-icon {
+    width: 52px; height: 52px;
+    border: 2px solid var(--cyan);
+    display: grid; place-items: center;
+    font-size: 22px;
+    box-shadow: var(--glow-c), inset 0 0 12px #00ccff22;
+    animation: pulse-border 3s infinite;
+    clip-path: polygon(10% 0,90% 0,100% 10%,100% 90%,90% 100%,10% 100%,0 90%,0 10%);
+  }
+  @keyframes pulse-border { 0%,100%{box-shadow:var(--glow-c),inset 0 0 12px #00ccff22} 50%{box-shadow:0 0 25px #00ccff99,inset 0 0 20px #00ccff44} }
+  .logo-text h1 { font-family:'Orbitron',monospace; font-size: 22px; font-weight:900; letter-spacing:3px; color:#fff; }
+  .logo-text h1 span { color: var(--cyan); }
+  .logo-text p { font-size: 11px; color: var(--text2); letter-spacing: 4px; text-transform: uppercase; margin-top: 2px; }
+  .header-meta { text-align: right; }
+  .badge { display: inline-block; font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:2px; color: var(--green); border: 1px solid var(--green2); padding: 3px 10px; margin-bottom: 6px; animation: blink-badge 2s infinite; }
+  @keyframes blink-badge { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  .header-meta p { font-size: 11px; color: var(--text2); letter-spacing: 2px; }
+
+  /* ─── Scan Input Area ─── */
+  .scan-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--cyan);
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .scan-box::before {
+    content: 'TARGET ACQUISITION';
+    position: absolute; top: 8px; left: 32px;
+    font-family: 'Share Tech Mono',monospace; font-size: 9px; letter-spacing: 4px; color: var(--cyan); opacity: 0.5;
+  }
+  .scan-label { font-size: 12px; letter-spacing: 3px; color: var(--text2); text-transform: uppercase; margin-bottom: 12px; margin-top: 8px; }
+  .scan-row { display: flex; gap: 12px; align-items: stretch; }
+  .url-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: #fff;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    padding: 14px 20px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .url-input:focus { border-color: var(--cyan); box-shadow: var(--glow-c); }
+  .url-input::placeholder { color: var(--text2); }
+  .btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 14px 28px;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-scan {
+    background: linear-gradient(135deg, #00cc66, #00aaff);
+    color: #000;
+    font-weight: 700;
+  }
+  .btn-scan:hover { filter: brightness(1.2); transform: translateY(-1px); box-shadow: 0 4px 20px #00cc6644; }
+  .btn-scan:disabled { background: #1a2a3a; color: var(--text2); cursor: not-allowed; transform: none; }
+  .btn-clear { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+  .btn-clear:hover { border-color: var(--red); color: var(--red); }
+  .btn-ai { background: linear-gradient(135deg, #aa00ff, #ff0088); color: #fff; }
+  .btn-ai:hover { filter: brightness(1.2); box-shadow: 0 4px 20px #aa00ff44; }
+
+  .scan-options { display: flex; gap: 20px; margin-top: 16px; flex-wrap: wrap; }
+  .option { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .option input[type=checkbox] { accent-color: var(--cyan); width: 14px; height: 14px; }
+  .option label { font-size: 12px; letter-spacing: 1px; color: var(--text2); cursor: pointer; }
+  .option:hover label { color: var(--cyan); }
+
+  /* ─── Progress Bar ─── */
+  .progress-wrap { margin-top: 16px; display: none; }
+  .progress-label { font-family:'Share Tech Mono',monospace; font-size: 11px; color: var(--cyan); margin-bottom: 6px; }
+  .progress-bar { height: 3px; background: var(--bg3); position: relative; overflow: hidden; }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--cyan), var(--green));
+    transition: width 0.3s ease;
+    box-shadow: 0 0 10px var(--cyan);
+  }
+  .progress-steps { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .step-dot {
+    font-size: 10px; font-family:'Share Tech Mono',monospace;
+    padding: 2px 8px; border: 1px solid var(--border);
+    color: var(--text2); letter-spacing: 1px;
+  }
+  .step-dot.active { border-color: var(--cyan); color: var(--cyan); background: #00ccff11; }
+  .step-dot.done { border-color: var(--green2); color: var(--green); background: #00ff8811; }
+  .step-dot.err { border-color: var(--red); color: var(--red); }
+
+  /* ─── Tabs ─── */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 24px; overflow-x: auto; }
+  .tab {
+    font-family: 'Orbitron',monospace; font-size: 9px; letter-spacing: 2px;
+    padding: 12px 20px; cursor: pointer; border-bottom: 2px solid transparent;
+    color: var(--text2); text-transform: uppercase; white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab:hover { color: var(--cyan); }
+  .tab.active { color: var(--cyan); border-bottom-color: var(--cyan); background: #00ccff08; }
+  .tab .count {
+    display: inline-block; background: var(--red); color: #fff;
+    font-size: 9px; padding: 1px 5px; margin-left: 6px; border-radius: 2px;
+  }
+  .tab .count.good { background: var(--green2); color: #000; }
+
+  /* ─── Panel ─── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ─── Section Header ─── */
+  .section-hdr {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 16px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-hdr .icon { font-size: 18px; }
+  .section-hdr h2 { font-family:'Orbitron',monospace; font-size: 13px; letter-spacing: 2px; color: var(--cyan); }
+  .section-hdr .score { margin-left: auto; font-family:'Share Tech Mono',monospace; font-size: 22px; font-weight: bold; }
+  .score.A { color: var(--green); text-shadow: var(--glow-g); }
+  .score.B { color: #88ff44; }
+  .score.C { color: var(--yellow); text-shadow: var(--glow-y); }
+  .score.D { color: var(--orange); }
+  .score.F { color: var(--red); text-shadow: var(--glow-r); }
+
+  /* ─── Header Row ─── */
+  .hdr-row {
+    display: grid;
+    grid-template-columns: 220px 90px 1fr;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    margin-bottom: 6px;
+    align-items: start;
+    transition: border-color 0.2s;
+    background: var(--bg2);
+  }
+  .hdr-row:hover { border-color: #2a3a5a; }
+  .hdr-row.present { border-left: 3px solid var(--green); }
+  .hdr-row.missing { border-left: 3px solid var(--red); }
+  .hdr-row.info-disc { border-left: 3px solid var(--orange); }
+  .hdr-row.warn { border-left: 3px solid var(--yellow); }
+  .hdr-name { font-family:'Share Tech Mono',monospace; font-size: 12px; color: #eee; word-break: break-all; }
+  .hdr-status { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 1px; }
+  .hdr-status.ok { color: var(--green); }
+  .hdr-status.fail { color: var(--red); }
+  .hdr-status.warn { color: var(--yellow); }
+  .hdr-status.info { color: var(--orange); }
+  .hdr-status .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-green { background: var(--green); box-shadow: var(--glow-g); }
+  .dot-red { background: var(--red); box-shadow: var(--glow-r); }
+  .dot-yellow { background: var(--yellow); box-shadow: var(--glow-y); }
+  .dot-orange { background: var(--orange); }
+  .hdr-detail { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .hdr-detail .val { color: var(--cyan); font-family:'Share Tech Mono',monospace; font-size: 11px; word-break: break-all; }
+  .hdr-detail .example { color: var(--text2); font-size: 11px; margin-top: 3px; font-style: italic; }
+  .hdr-detail .recm { color: var(--yellow); font-size: 11px; margin-top: 3px; }
+
+  /* ─── Cookie Row ─── */
+  .cookie-row {
+    background: var(--bg2); border: 1px solid var(--border);
+    padding: 12px 16px; margin-bottom: 6px;
+    display: grid; grid-template-columns: 160px 1fr; gap: 12px;
+    border-left: 3px solid var(--text2);
+  }
+  .cookie-name { font-family:'Share Tech Mono',monospace; font-size: 12px; color: #eee; }
+  .cookie-flags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .flag {
+    font-size: 10px; font-family:'Share Tech Mono',monospace;
+    padding: 2px 7px; border-radius: 2px; letter-spacing: 1px;
+  }
+  .flag.ok { background: #00ff8822; color: var(--green); border: 1px solid var(--green2); }
+  .flag.bad { background: #ff224422; color: var(--red); border: 1px solid var(--red2); }
+  .flag.warn { background: #ffcc0022; color: var(--yellow); border: 1px solid #aa8800; }
+
+  /* ─── JS / Secret Rows ─── */
+  .file-block {
+    border: 1px solid var(--border); margin-bottom: 16px; background: var(--bg2);
+  }
+  .file-hdr {
+    padding: 10px 16px; background: var(--bg3);
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border); cursor: pointer;
+  }
+  .file-hdr .filename { font-family:'Share Tech Mono',monospace; font-size: 12px; color: var(--cyan); flex: 1; word-break: break-all; }
+  .file-hdr .file-stats { display: flex; gap: 8px; }
+  .stat-badge {
+    font-size: 10px; padding: 2px 8px; border-radius: 2px;
+    font-family:'Share Tech Mono',monospace;
+  }
+  .stat-badge.crit { background:#ff224422; color:var(--red); border:1px solid var(--red2); }
+  .stat-badge.high { background:#ff880022; color:var(--orange); border:1px solid #aa5500; }
+  .stat-badge.med { background:#ffcc0022; color:var(--yellow); border:1px solid #aa8800; }
+  .stat-badge.low { background:#3399ff22; color:var(--blue); border:1px solid #1166cc; }
+  .stat-badge.ep { background:#cc44ff22; color:var(--purple); border:1px solid #8800cc; }
+  .file-body { padding: 12px 16px; display: none; }
+  .file-block.open .file-body { display: block; }
+  .file-block.open .file-hdr::after { content:'▲'; color:var(--text2); font-size:10px; }
+  .file-hdr::after { content:'▼'; color:var(--text2); font-size:10px; }
+
+  .secret-item {
+    display: grid; grid-template-columns: 180px 90px 1fr;
+    gap: 10px; padding: 8px 12px;
+    border-bottom: 1px solid var(--border); align-items: start;
+    font-size: 12px;
+  }
+  .secret-item:last-child { border-bottom: none; }
+  .secret-type { font-weight: 600; color: #eee; }
+  .severity { font-family:'Share Tech Mono',monospace; font-size: 10px; letter-spacing: 1px; padding: 2px 6px; border-radius: 2px; display: inline-block; }
+  .sev-critical { background:#ff224422; color:var(--red); border:1px solid var(--red2); }
+  .sev-high { background:#ff880022; color:var(--orange); border:1px solid #aa5500; }
+  .sev-medium { background:#ffcc0022; color:var(--yellow); border:1px solid #aa8800; }
+  .sev-low { background:#3399ff22; color:var(--blue); border:1px solid #1166cc; }
+  .secret-val { font-family:'Share Tech Mono',monospace; font-size: 11px; color: var(--cyan); word-break: break-all; background:#00ccff08; padding: 4px 8px; border: 1px solid #00ccff22; }
+
+  /* ─── Endpoint List ─── */
+  .endpoint-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 12px; border-bottom: 1px solid #0d1525;
+    font-size: 12px; font-family:'Share Tech Mono',monospace;
+  }
+  .endpoint-item:last-child { border-bottom: none; }
+  .method-badge {
+    font-size: 9px; padding: 2px 6px; border-radius: 2px; width: 48px;
+    text-align: center; flex-shrink: 0; font-weight: 700;
+  }
+  .m-GET { background:#00ff8822; color:var(--green); border:1px solid var(--green2); }
+  .m-POST { background:#ff880022; color:var(--orange); border:1px solid #aa5500; }
+  .m-PUT { background:#ffcc0022; color:var(--yellow); }
+  .m-DELETE { background:#ff224422; color:var(--red); }
+  .m-ANY { background:#3399ff22; color:var(--blue); }
+  .ep-url { color: var(--cyan); flex: 1; word-break: break-all; font-size: 11px; }
+
+  /* ─── Info Cards ─── */
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 12px; margin-bottom: 24px; }
+  .info-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    padding: 16px; position: relative; overflow: hidden;
+  }
+  .info-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--cyan); }
+  .info-card.warn::before { background:var(--yellow); }
+  .info-card.danger::before { background:var(--red); }
+  .info-card .ic-label { font-size: 10px; letter-spacing: 3px; color: var(--text2); text-transform: uppercase; margin-bottom: 8px; }
+  .info-card .ic-value { font-family:'Share Tech Mono',monospace; font-size: 14px; color: #fff; word-break: break-all; }
+  .info-card .ic-sub { font-size: 11px; color: var(--text2); margin-top: 4px; }
+
+  /* ─── AI Panel ─── */
+  .ai-output {
+    background: var(--bg2); border: 1px solid var(--purple);
+    padding: 20px 24px; font-size: 13px; line-height: 1.8;
+    color: var(--text); font-family: 'Rajdhani', sans-serif;
+    position: relative; border-top: 2px solid var(--purple);
+    min-height: 120px;
+  }
+  .ai-output::before {
+    content: 'AI ANALYSIS — CLAUDE SONNET';
+    position: absolute; top: -1px; right: 20px;
+    font-family:'Share Tech Mono',monospace; font-size: 9px; letter-spacing:3px;
+    color: var(--purple); background: var(--bg); padding: 0 8px;
+    transform: translateY(-50%);
+  }
+  .ai-output .thinking { color: var(--text2); font-style: italic; }
+  .ai-output strong { color: var(--cyan); }
+  .ai-output .ai-finding { padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .ai-output .risk-high { color: var(--red); }
+  .ai-output .risk-med { color: var(--yellow); }
+  .ai-output .risk-low { color: var(--green); }
+
+  /* ─── Summary Bar ─── */
+  .summary-bar {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr));
+    gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 24px;
+  }
+  .sum-cell {
+    background: var(--bg2); padding: 14px 16px; text-align: center;
+  }
+  .sum-cell .num { font-family:'Orbitron',monospace; font-size: 28px; font-weight: 900; }
+  .sum-cell .lbl { font-size: 10px; letter-spacing: 2px; color: var(--text2); text-transform: uppercase; margin-top: 2px; }
+  .num.crit { color: var(--red); text-shadow: var(--glow-r); }
+  .num.high { color: var(--orange); }
+  .num.med { color: var(--yellow); text-shadow: var(--glow-y); }
+  .num.safe { color: var(--green); text-shadow: var(--glow-g); }
+  .num.info { color: var(--blue); }
+
+  /* ─── Empty State ─── */
+  .empty {
+    text-align: center; padding: 60px 20px;
+    color: var(--text2); font-size: 13px; letter-spacing: 1px;
+  }
+  .empty .icon { font-size: 40px; margin-bottom: 16px; opacity: 0.4; }
+  .empty p { opacity: 0.6; }
+
+  /* ─── CORS info ─── */
+  .note {
+    font-size: 11px; color: var(--text2); padding: 8px 16px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-left: 3px solid var(--yellow); margin-bottom: 16px;
+    font-family: 'Share Tech Mono', monospace; line-height: 1.5;
+  }
+
+  /* ─── Misc ─── */
+  .mono { font-family:'Share Tech Mono',monospace; }
+  pre { background: var(--bg3); padding: 12px; border: 1px solid var(--border); overflow-x: auto; font-size: 11px; font-family:'Share Tech Mono',monospace; line-height: 1.5; color: var(--cyan); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+
+  /* ─── Alerts ─── */
+  .alert { padding: 12px 16px; margin-bottom: 12px; font-size: 12px; border-left: 3px solid; font-family:'Share Tech Mono',monospace; }
+  .alert-err { border-color: var(--red); background:#ff224411; color:var(--red); }
+  .alert-ok { border-color: var(--green); background:#00ff8811; color:var(--green); }
+  .alert-warn { border-color: var(--yellow); background:#ffcc0011; color:var(--yellow); }
+
+  /* ─── Spinner ─── */
+  .spin {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid var(--border); border-top-color: var(--cyan);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ─── Animated scan line ─── */
+  .scan-line-anim {
+    position: relative; overflow: hidden;
+  }
+  .scan-line-anim::after {
+    content: ''; position: absolute; top: 0; left: -100%;
+    width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0,204,255,0.05), transparent);
+    animation: scan-sweep 2s linear infinite;
+  }
+  @keyframes scan-sweep { to { left: 150%; } }
+
+  .collapse-btn { font-size: 11px; color: var(--text2); cursor: pointer; padding: 4px 8px; border: 1px solid var(--border); background: none; }
+  .collapse-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+
+  /* ─── Footer ─── */
+  footer {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--bg); border-top: 1px solid var(--border);
+    padding: 8px 24px; display: flex; justify-content: space-between; align-items: center;
+    z-index: 10; font-size: 10px; font-family:'Share Tech Mono',monospace; color: var(--text2);
+  }
+  footer .status { display: flex; align-items: center; gap: 8px; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: blink-badge 1.5s infinite; }
+
+  /* Responsive */
+  @media (max-width: 680px) {
+    .hdr-row { grid-template-columns: 1fr; }
+    .secret-item { grid-template-columns: 1fr; }
+    header { flex-direction: column; gap: 12px; text-align: center; }
+    .header-meta { text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="matrixCanvas"></canvas>
+
+<div class="wrapper">
+
+  <!-- Header -->
+  <header>
+    <div class="logo-area">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">
+        <h1>VULN<span>SCAN</span> PRO</h1>
+        <p>Penetration Testing Suite v3.0</p>
+      </div>
+    </div>
+    <div class="header-meta">
+      <div class="badge">● SYSTEM ONLINE</div>
+      <p>AI-Augmented · Header Analysis · JS Recon</p>
+    </div>
+  </header>
+
+  <!-- Scan Input -->
+  <div class="scan-box scan-line-anim">
+    <div class="scan-label">Target URL</div>
+    <div class="scan-row">
+      <input type="text" class="url-input" id="urlInput"
+        placeholder="https://target-application.com"
+        spellcheck="false" autocomplete="off">
+      <button class="btn btn-scan" id="scanBtn" onclick="startScan()">⚡ SCAN</button>
+      <button class="btn btn-clear" onclick="clearAll()">✕ CLEAR</button>
+    </div>
+    <div class="scan-options">
+      <label class="option"><input type="checkbox" id="optHeaders" checked><label for="optHeaders">Security Headers</label></label>
+      <label class="option"><input type="checkbox" id="optJs" checked><label for="optJs">JS Recon</label></label>
+      <label class="option"><input type="checkbox" id="optCookies" checked><label for="optCookies">Cookie Audit</label></label>
+      <label class="option"><input type="checkbox" id="optCors"><label for="optCors">CORS Analysis</label></label>
+      <label class="option"><input type="checkbox" id="optRobots" checked><label for="optRobots">Robots/Sitemap</label></label>
+      <label class="option"><input type="checkbox" id="optAi" checked><label for="optAi">AI Analysis</label></label>
+    </div>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-label" id="progressLabel">Initializing scanner…</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-steps" id="progressSteps"></div>
+    </div>
+  </div>
+
+  <!-- Alert area -->
+  <div id="alertArea"></div>
+
+  <!-- Summary Bar -->
+  <div class="summary-bar" id="summaryBar" style="display:none">
+    <div class="sum-cell"><div class="num crit" id="sumCrit">0</div><div class="lbl">Critical</div></div>
+    <div class="sum-cell"><div class="num high" id="sumHigh">0</div><div class="lbl">High</div></div>
+    <div class="sum-cell"><div class="num med"  id="sumMed">0</div><div class="lbl">Medium</div></div>
+    <div class="sum-cell"><div class="num safe" id="sumSafe">0</div><div class="lbl">Headers OK</div></div>
+    <div class="sum-cell"><div class="num info" id="sumJs">0</div><div class="lbl">JS Files</div></div>
+    <div class="sum-cell"><div class="num info" id="sumEp">0</div><div class="lbl">Endpoints</div></div>
+    <div class="sum-cell"><div class="num crit" id="sumSec">0</div><div class="lbl">Secrets</div></div>
+    <div class="sum-cell"><div class="num" style="color:var(--cyan)" id="sumScore">—</div><div class="lbl">Risk Grade</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" id="tabBar" style="display:none">
+    <div class="tab active" onclick="showTab('headers',this)">⚔ Security Headers</div>
+    <div class="tab" onclick="showTab('js',this)">📜 JS Recon <span class="count" id="tabJsCount" style="display:none">0</span></div>
+    <div class="tab" onclick="showTab('cookies',this)">🍪 Cookies</div>
+    <div class="tab" onclick="showTab('tech',this)">🔍 Tech Info</div>
+    <div class="tab" onclick="showTab('robots',this)">🤖 Robots</div>
+    <div class="tab" onclick="showTab('ai',this)">🤖 AI Analysis</div>
+  </div>
+
+  <!-- Panel: Security Headers -->
+  <div class="panel active" id="panel-headers">
+    <div class="empty" id="hdrEmpty"><div class="icon">🛡</div><p>Enter a URL and click SCAN to begin security header analysis.</p></div>
+    <div id="hdrResults" style="display:none"></div>
+  </div>
+
+  <!-- Panel: JS Recon -->
+  <div class="panel" id="panel-js">
+    <div class="empty" id="jsEmpty"><div class="icon">📜</div><p>JS Recon results will appear here after scanning.</p></div>
+    <div id="jsResults" style="display:none"></div>
+  </div>
+
+  <!-- Panel: Cookies -->
+  <div class="panel" id="panel-cookies">
+    <div class="empty" id="cookieEmpty"><div class="icon">🍪</div><p>Cookie security analysis will appear here after scanning.</p></div>
+    <div id="cookieResults" style="display:none"></div>
+  </div>
+
+  <!-- Panel: Tech Info -->
+  <div class="panel" id="panel-tech">
+    <div class="empty" id="techEmpty"><div class="icon">🔍</div><p>Technology fingerprinting results will appear here.</p></div>
+    <div id="techResults" style="display:none"></div>
+  </div>
+
+  <!-- Panel: Robots -->
+  <div class="panel" id="panel-robots">
+    <div class="empty" id="robotsEmpty"><div class="icon">🤖</div><p>Robots.txt and Sitemap analysis will appear here.</p></div>
+    <div id="robotsResults" style="display:none"></div>
+  </div>
+
+  <!-- Panel: AI -->
+  <div class="panel" id="panel-ai">
+    <div class="empty" id="aiEmpty"><div class="icon">🤖</div><p>Enable AI Analysis and run a scan to get AI-powered risk assessment.</p></div>
+    <div id="aiResults" style="display:none"></div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="status"><div class="status-dot"></div><span id="footStatus">IDLE — AWAITING TARGET</span></div>
+  <div>VulnScan Pro · For authorized penetration testing only</div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  CONFIGURATION
+// ═══════════════════════════════════════════════════════════
+const PROXY     = 'https://resumelens-proxy.somnathsahoo0069.workers.dev/';
+const AI_MODEL  = 'claude-sonnet-4-20250514';
+const MAX_TOKENS = 2000;
+
+// ═══════════════════════════════════════════════════════════
+//  MATRIX RAIN BACKGROUND
+// ═══════════════════════════════════════════════════════════
+(function() {
+  const c = document.getElementById('matrixCanvas');
+  const ctx = c.getContext('2d');
+  function resize() { c.width = window.innerWidth; c.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  const chars = '01アイウエオカキクケコサシスセソタチツテト';
+  const cols = Math.floor(window.innerWidth / 16);
+  const drops = Array(cols).fill(1);
+  setInterval(() => {
+    ctx.fillStyle = 'rgba(5,7,15,0.05)';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.fillStyle = '#00ff88';
+    ctx.font = '12px monospace';
+    drops.forEach((y, i) => {
+      ctx.fillText(chars[Math.floor(Math.random()*chars.length)], i*16, y*16);
+      if (y*16 > c.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    });
+  }, 80);
+})();
+
+// ═══════════════════════════════════════════════════════════
+//  SECURITY HEADER DEFINITIONS
+// ═══════════════════════════════════════════════════════════
+const HEADERS_DEF = [
+  {
+    name: 'Strict-Transport-Security',
+    category: 'required',
+    severity: 'critical',
+    desc: 'Forces HTTPS. Without this, downgrade attacks (SSLstrip) are possible.',
+    example: 'max-age=31536000; includeSubDomains; preload',
+    check: v => v && /max-age=\d+/i.test(v),
+    warn: v => v && !/includeSubDomains/i.test(v) ? 'Missing includeSubDomains' : null,
+  },
+  {
+    name: 'Content-Security-Policy',
+    category: 'required',
+    severity: 'critical',
+    desc: 'Prevents XSS, clickjacking, and data injection attacks.',
+    example: "default-src 'self'; script-src 'self'; object-src 'none'",
+    check: v => v && v.length > 0,
+    warn: v => {
+      if (!v) return null;
+      if (/unsafe-inline/i.test(v)) return "⚠ Contains 'unsafe-inline' — XSS risk";
+      if (/unsafe-eval/i.test(v)) return "⚠ Contains 'unsafe-eval' — XSS risk";
+      if (/\*/i.test(v)) return "⚠ Wildcard (*) source detected";
+      return null;
+    },
+  },
+  {
+    name: 'X-Frame-Options',
+    category: 'required',
+    severity: 'high',
+    desc: 'Prevents clickjacking by controlling iframe embedding.',
+    example: 'DENY or SAMEORIGIN',
+    check: v => v && /DENY|SAMEORIGIN/i.test(v),
+  },
+  {
+    name: 'X-Content-Type-Options',
+    category: 'required',
+    severity: 'high',
+    desc: 'Prevents MIME sniffing attacks. Must be exactly "nosniff".',
+    example: 'nosniff',
+    check: v => v && /nosniff/i.test(v),
+  },
+  {
+    name: 'Referrer-Policy',
+    category: 'required',
+    severity: 'medium',
+    desc: 'Controls referrer information in requests.',
+    example: 'strict-origin-when-cross-origin',
+    check: v => v && v.trim().length > 0,
+    warn: v => v === 'unsafe-url' ? '⚠ unsafe-url exposes full URLs' : null,
+  },
+  {
+    name: 'Permissions-Policy',
+    category: 'required',
+    severity: 'medium',
+    desc: 'Restricts access to browser features (camera, mic, geolocation).',
+    example: 'camera=(), microphone=(), geolocation=()',
+    check: v => v && v.length > 0,
+  },
+  {
+    name: 'Cross-Origin-Embedder-Policy',
+    category: 'recommended',
+    severity: 'medium',
+    desc: 'Prevents documents from loading cross-origin resources without permission.',
+    example: 'require-corp',
+    check: v => v && v.trim().length > 0,
+  },
+  {
+    name: 'Cross-Origin-Opener-Policy',
+    category: 'recommended',
+    severity: 'medium',
+    desc: 'Isolates browsing context against cross-origin attacks.',
+    example: 'same-origin',
+    check: v => v && v.trim().length > 0,
+  },
+  {
+    name: 'Cross-Origin-Resource-Policy',
+    category: 'recommended',
+    severity: 'medium',
+    desc: 'Controls who can load the resource.',
+    example: 'same-origin',
+    check: v => v && v.trim().length > 0,
+  },
+  {
+    name: 'Cache-Control',
+    category: 'informational',
+    severity: 'low',
+    desc: 'Sensitive pages should use no-store.',
+    example: 'no-store, no-cache',
+    check: v => v && /no-store/i.test(v),
+  },
+  {
+    name: 'X-XSS-Protection',
+    category: 'deprecated',
+    severity: 'info',
+    desc: 'Deprecated. Modern browsers use CSP instead. May cause XSS in some browsers.',
+    example: '0 (disable it if CSP is in place)',
+    check: v => v !== undefined,
+    warn: v => v && v.trim() !== '0' ? '⚠ Set to 0 if CSP is configured' : null,
+  },
+];
+
+// Info disclosure headers (should NOT be present)
+const DISCLOSURE_HEADERS = [
+  { name: 'Server',             desc: 'Reveals web server type and version (Apache, nginx, IIS).' },
+  { name: 'X-Powered-By',      desc: 'Reveals backend technology (PHP, Express, ASP.NET).' },
+  { name: 'X-AspNet-Version',  desc: 'Reveals .NET version.' },
+  { name: 'X-AspNetMvc-Version',desc: 'Reveals ASP.NET MVC version.' },
+  { name: 'X-Generator',       desc: 'Reveals CMS or generator (WordPress, Drupal).' },
+  { name: 'X-Drupal-Cache',    desc: 'Reveals Drupal CMS usage.' },
+  { name: 'X-Varnish',         desc: 'Reveals Varnish cache infrastructure.' },
+];
+
+// ═══════════════════════════════════════════════════════════
+//  SECRET PATTERNS FOR JS SCANNING
+// ═══════════════════════════════════════════════════════════
+const SECRET_PATTERNS = [
+  { name:'React Enc/Dec Secret Key',  sev:'critical', rx:/(?:REACT_APP_ENC(?:RYPTION)?_?(?:DEC(?:RYPTION)?)?_?(?:SECRET|KEY)[_A-Z0-9]*)['"]?\s*[:=]\s*['"`]([^'"`\s]{6,})['"`]/gi },
+  { name:'React Env Variable (Any)',  sev:'high',     rx:/process\.env\.REACT_APP_([A-Z_]+)\s*[:=]\s*['"`]([^'"`\s]{4,})['"`]/gi },
+  { name:'Next.js Public Env',        sev:'high',     rx:/NEXT_PUBLIC_[A-Z_]+\s*[:=]\s*['"`]([^'"`\s]{4,})['"`]/gi },
+  { name:'VUE_APP Env Variable',      sev:'high',     rx:/VUE_APP_[A-Z_]+\s*[:=]\s*['"`]([^'"`\s]{4,})['"`]/gi },
+  { name:'Generic API Key',           sev:'critical', rx:/['"]?(?:api[_-]?key|apiKey|API_KEY)['"]?\s*[:=]\s*['"`]([A-Za-z0-9_\-]{16,})['"`]/gi },
+  { name:'Secret Key / Secret',       sev:'critical', rx:/['"]?(?:secret[_-]?key|secretKey|SECRET_KEY|secret)['"]?\s*[:=]\s*['"`]([^'"`\s]{8,})['"`]/gi },
+  { name:'Password (Hardcoded)',       sev:'critical', rx:/['"]?(?:password|passwd|pwd|pass)['"]?\s*[:=]\s*['"`]([^'"`\s]{6,})['"`]/gi },
+  { name:'Auth Token',                sev:'critical', rx:/['"]?(?:auth[_-]?token|authToken|AUTH_TOKEN|access_token|accessToken)['"]?\s*[:=]\s*['"`]([A-Za-z0-9._\-]{20,})['"`]/gi },
+  { name:'Bearer Token (Hardcoded)',  sev:'critical', rx:/[Bb]earer\s+([A-Za-z0-9._\-]{20,})/g },
+  { name:'AWS Access Key ID',         sev:'critical', rx:/AKIA[0-9A-Z]{16}/g },
+  { name:'AWS Secret Access Key',     sev:'critical', rx:/['"]?(?:aws[_-]?secret(?:[_-]?access)?[_-]?key)['"]?\s*[:=]\s*['"`]([A-Za-z0-9+\/]{40})['"`]/gi },
+  { name:'Private Key (PEM)',         sev:'critical', rx:/-----BEGIN\s(?:RSA\s|EC\s|OPENSSH\s)?PRIVATE KEY-----/g },
+  { name:'JWT Token (Hardcoded)',     sev:'high',     rx:/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g },
+  { name:'Firebase API Key',         sev:'high',     rx:/firebaseConfig\s*=\s*\{([^}]+)\}/g },
+  { name:'Google API Key',           sev:'critical', rx:/AIza[0-9A-Za-z_\-]{35}/g },
+  { name:'Google OAuth Client ID',   sev:'medium',   rx:/[0-9]{8,}-[a-z0-9]+\.apps\.googleusercontent\.com/g },
+  { name:'Stripe Live Key',          sev:'critical', rx:/(?:sk|pk)_live_[0-9A-Za-z]{24,}/g },
+  { name:'Stripe Test Key',          sev:'medium',   rx:/(?:sk|pk)_test_[0-9A-Za-z]{24,}/g },
+  { name:'GitHub Token (PAT)',       sev:'critical', rx:/(?:ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{82})/g },
+  { name:'GitHub OAuth Token',       sev:'critical', rx:/[0-9a-f]{40}/g },
+  { name:'SendGrid API Key',         sev:'critical', rx:/SG\.[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43}/g },
+  { name:'Twilio Account SID',       sev:'high',     rx:/AC[a-z0-9]{32}/g },
+  { name:'Mailchimp API Key',        sev:'high',     rx:/[0-9a-f]{32}-us[0-9]{1,2}/g },
+  { name:'Slack Token',              sev:'critical', rx:/xox[baprs]-[0-9A-Za-z\-]{10,}/g },
+  { name:'Database URL',             sev:'critical', rx:/['"`](?:mongodb(?:\+srv)?|postgresql|postgres|mysql|redis|mssql):\/\/[^\s'"`]+['"`]/gi },
+  { name:'Connection String',        sev:'critical', rx:/['"]?(?:connectionString|connection_string|DATABASE_URL|DB_URL)['"]?\s*[:=]\s*['"`]([^'"`\s]{10,})['"`]/gi },
+  { name:'Encryption / IV Key',      sev:'critical', rx:/['"]?(?:encryptionKey|encryption_key|enc_key|decryptionKey|ivKey|IV_KEY|AES_KEY|CIPHER_KEY)['"]?\s*[:=]\s*['"`]([^'"`\s]{8,})['"`]/gi },
+  { name:'Hardcoded Email',          sev:'low',      rx:/['"`][a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}['"`]/g },
+  { name:'Internal / Localhost URL', sev:'medium',   rx:/['"`](https?:\/\/(?:localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+)[^\s'"`]*)['"`]/gi },
+  { name:'Hardcoded IP Address',     sev:'medium',   rx:/['"`](\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?::\d+)?)['"`]/g },
+  { name:'Azure SAS Token',         sev:'critical', rx:/sv=\d{4}-\d{2}-\d{2}&[^'"`\s]*(sig=[A-Za-z0-9+\/=]{20,})[^'"`\s]*/g },
+  { name:'Heroku API Key',          sev:'critical', rx:/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g },
+  { name:'RSA/SSH Public Key',      sev:'info',     rx:/(?:ssh-rsa|ssh-ed25519)\s+AAAA[0-9A-Za-z+\/=]+/g },
+  { name:'Commented Credential',    sev:'medium',   rx:/\/\/.*(?:password|secret|token|key|api).*[=:]\s*\S{6,}/gi },
+  { name:'console.log Leak',        sev:'low',      rx:/console\.log\s*\([^)]*(?:password|token|secret|key)[^)]*\)/gi },
+  { name:'TODO/FIXME Credential',   sev:'low',      rx:/(?:TODO|FIXME|HACK|XXX|BUG).*(?:password|secret|token|key|credential)/gi },
+];
+
+// Endpoint extraction patterns
+const ENDPOINT_PATTERNS = [
+  { rx:/fetch\s*\(\s*`([^`]+)`/gi,                        method:'GET'  },
+  { rx:/fetch\s*\(\s*['"]([^'"]{4,})['"],?\s*\{[^}]*method\s*:\s*['"]POST['"]/gi, method:'POST' },
+  { rx:/fetch\s*\(\s*['"]([^'"]{4,})['"],?\s*\{[^}]*method\s*:\s*['"]PUT['"]/gi,  method:'PUT'  },
+  { rx:/fetch\s*\(\s*['"]([^'"]{4,})['"],?\s*\{[^}]*method\s*:\s*['"]DELETE['"]/gi,method:'DELETE'},
+  { rx:/fetch\s*\(\s*['"]([^'"]+)['"]/gi,                  method:'GET'  },
+  { rx:/axios\.get\s*\(\s*['"`]([^'"`]+)['"`]/gi,          method:'GET'  },
+  { rx:/axios\.post\s*\(\s*['"`]([^'"`]+)['"`]/gi,         method:'POST' },
+  { rx:/axios\.put\s*\(\s*['"`]([^'"`]+)['"`]/gi,          method:'PUT'  },
+  { rx:/axios\.delete\s*\(\s*['"`]([^'"`]+)['"`]/gi,       method:'DELETE'},
+  { rx:/axios\.patch\s*\(\s*['"`]([^'"`]+)['"`]/gi,        method:'PATCH'},
+  { rx:/\$\.ajax\(\s*\{\s*url\s*:\s*['"`]([^'"`]+)['"`]/gi,method:'ANY'  },
+  { rx:/\$\.get\s*\(\s*['"`]([^'"`]+)['"`]/gi,             method:'GET'  },
+  { rx:/\$\.post\s*\(\s*['"`]([^'"`]+)['"`]/gi,            method:'POST' },
+  { rx:/baseURL\s*[:=]\s*['"`]([^'"`\s]+)['"`]/gi,         method:'BASE' },
+  { rx:/apiUrl\s*[:=]\s*['"`]([^'"`\s]+)['"`]/gi,          method:'BASE' },
+  { rx:/API_BASE\s*[:=]\s*['"`]([^'"`\s]+)['"`]/gi,        method:'BASE' },
+  { rx:/['"`](\/(?:api|v\d|graphql|rest|endpoint|service|auth|login|user|admin|upload|search|query|resource|webhook)[\/a-z0-9_\-.?=&%{}:]*)['"` ]/gi, method:'ANY' },
+];
+
+// ═══════════════════════════════════════════════════════════
+//  GLOBAL STATE
+// ═══════════════════════════════════════════════════════════
+let scanData = { headers:{}, cookies:[], js:[], tech:{}, robots:null, sitemap:null };
+let summaryCount = { crit:0, high:0, med:0, safe:0, js:0, ep:0, sec:0 };
+
+// ═══════════════════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════════════════
+function setStatus(t) { document.getElementById('footStatus').textContent = t; }
+function showAlert(msg, type='err') {
+  const a = document.createElement('div');
+  a.className = `alert alert-${type}`;
+  a.textContent = msg;
+  document.getElementById('alertArea').appendChild(a);
+  setTimeout(() => a.remove(), 8000);
+}
+function clearAlerts() { document.getElementById('alertArea').innerHTML = ''; }
+
+function setProgress(pct, label, steps=[]) {
+  const pw = document.getElementById('progressWrap');
+  pw.style.display = 'block';
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = label;
+  if (steps.length) {
+    document.getElementById('progressSteps').innerHTML =
+      steps.map(s => `<div class="step-dot ${s.state}">${s.name}</div>`).join('');
+  }
+}
+
+function showTab(id, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-' + id).classList.add('active');
+}
+
+function clearAll() {
+  document.getElementById('urlInput').value = '';
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('summaryBar').style.display = 'none';
+  document.getElementById('tabBar').style.display = 'none';
+  clearAlerts();
+  ['hdrResults','jsResults','cookieResults','techResults','robotsResults','aiResults']
+    .forEach(id => { const el = document.getElementById(id); if(el) { el.style.display='none'; el.innerHTML=''; } });
+  ['hdrEmpty','jsEmpty','cookieEmpty','techEmpty','robotsEmpty','aiEmpty']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.style.display=''; });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-headers').classList.add('active');
+  document.querySelectorAll('.tab').forEach((t,i) => { t.classList.toggle('active', i===0); });
+  setStatus('IDLE — AWAITING TARGET');
+  summaryCount = { crit:0, high:0, med:0, safe:0, js:0, ep:0, sec:0 };
+  scanData = { headers:{}, cookies:[], js:[], tech:{}, robots:null, sitemap:null };
+}
+
+function maskSecret(val) {
+  if (!val || val.length < 6) return val;
+  const show = Math.min(4, Math.floor(val.length * 0.25));
+  return val.slice(0, show) + '•'.repeat(Math.min(val.length - show*2, 20)) + val.slice(-show);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PROXY FETCH
+// ═══════════════════════════════════════════════════════════
+async function proxyFetch(url, opts = {}) {
+  // Strategy 1: pass url as query param
+  const proxyUrl = PROXY + '?url=' + encodeURIComponent(url);
+  const resp = await fetch(proxyUrl, {
+    method: opts.method || 'GET',
+    headers: { 'X-Scanner': 'VulnScanPro', ...(opts.headers || {}) },
+  });
+  return resp;
+}
+
+async function proxyFetchText(url) {
+  try {
+    const r = await proxyFetch(url);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return { ok: true, text: await r.text(), headers: r.headers, status: r.status, resp: r };
+  } catch(e) {
+    // Fallback: try direct with no-cors (headers only trick won't work but try)
+    return { ok: false, error: e.message };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  AI CALL
+// ═══════════════════════════════════════════════════════════
+async function callAI(prompt) {
+  try {
+    const r = await fetch(PROXY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: AI_MODEL,
+        max_tokens: MAX_TOKENS,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!r.ok) throw new Error('AI API error: ' + r.status);
+    const d = await r.json();
+    const text = (d.content || []).map(c => c.text || '').join('');
+    return text || '(No AI response)';
+  } catch(e) {
+    return null;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MAIN SCAN ORCHESTRATOR
+// ═══════════════════════════════════════════════════════════
+async function startScan() {
+  let url = document.getElementById('urlInput').value.trim();
+  if (!url) { showAlert('Please enter a target URL.', 'err'); return; }
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  document.getElementById('urlInput').value = url;
+
+  clearAlerts();
+  document.getElementById('summaryBar').style.display = 'none';
+  document.getElementById('tabBar').style.display = 'none';
+  document.getElementById('scanBtn').disabled = true;
+
+  const optHeaders = document.getElementById('optHeaders').checked;
+  const optJs      = document.getElementById('optJs').checked;
+  const optCookies = document.getElementById('optCookies').checked;
+  const optRobots  = document.getElementById('optRobots').checked;
+  const optAi      = document.getElementById('optAi').checked;
+
+  summaryCount = { crit:0, high:0, med:0, safe:0, js:0, ep:0, sec:0 };
+  scanData = { headers:{}, cookies:[], js:[], tech:{}, robots:null, sitemap:null };
+
+  const steps = [
+    { name:'FETCH', state:'active' },
+    { name:'HEADERS', state:'' },
+    { name:'JS RECON', state:'' },
+    { name:'COOKIES', state:'' },
+    { name:'ROBOTS', state:'' },
+    { name:'AI', state:'' },
+  ];
+  setProgress(5, 'Connecting to target via proxy…', steps);
+  setStatus('SCANNING → ' + url);
+
+  try {
+    // 1. Fetch the main page
+    const mainRes = await proxyFetchText(url);
+    steps[0].state = mainRes.ok ? 'done' : 'err';
+    steps[1].state = 'active';
+    setProgress(15, 'Parsing response headers…', steps);
+
+    if (!mainRes.ok) {
+      showAlert('Could not reach target via proxy: ' + mainRes.error + '. Check the URL or proxy.', 'err');
+      document.getElementById('scanBtn').disabled = false;
+      document.getElementById('progressWrap').style.display = 'none';
+      return;
+    }
+
+    // 2. Parse headers
+    const rawHeaders = {};
+    mainRes.resp.headers.forEach((v,k) => { rawHeaders[k.toLowerCase()] = v; });
+
+    // Also check forwarded headers from proxy response body if proxy returns JSON
+    let proxyMeta = null;
+    try {
+      const bodyJson = JSON.parse(mainRes.text);
+      if (bodyJson && bodyJson.headers) proxyMeta = bodyJson;
+    } catch(_) {}
+
+    const targetHeaders = proxyMeta ? proxyMeta.headers : rawHeaders;
+    scanData.headers = targetHeaders;
+
+    // 3. Render Headers panel
+    if (optHeaders) {
+      renderHeaders(targetHeaders);
+    }
+    steps[1].state = 'done';
+    steps[2].state = 'active';
+    setProgress(35, 'Extracting and scanning JavaScript files…', steps);
+
+    // 4. JS Recon
+    const pageBody = proxyMeta ? (proxyMeta.body || mainRes.text) : mainRes.text;
+    if (optJs) {
+      await runJsRecon(url, pageBody);
+    }
+    steps[2].state = 'done';
+    steps[3].state = 'active';
+    setProgress(65, 'Auditing cookies…', steps);
+
+    // 5. Cookies
+    if (optCookies) {
+      const setCookies = [];
+      mainRes.resp.headers.forEach((v,k) => {
+        if (k.toLowerCase() === 'set-cookie') setCookies.push(v);
+      });
+      // Also from proxy meta
+      if (proxyMeta && proxyMeta.cookies) proxyMeta.cookies.forEach(c => setCookies.push(c));
+      renderCookies(setCookies, targetHeaders['set-cookie'] || '');
+    }
+    steps[3].state = 'done';
+    steps[4].state = 'active';
+    setProgress(78, 'Fetching robots.txt and sitemap…', steps);
+
+    // 6. Robots / Sitemap
+    if (optRobots) {
+      await runRobots(url);
+    }
+
+    // 7. Tech detection
+    renderTech(targetHeaders, pageBody);
+
+    steps[4].state = 'done';
+    steps[5].state = 'active';
+    setProgress(90, 'Running AI analysis…', steps);
+
+    // 8. AI Analysis
+    if (optAi) {
+      await runAiAnalysis(url, targetHeaders, scanData.js);
+    }
+    steps[5].state = 'done';
+    setProgress(100, '✔ Scan complete!', steps);
+
+    // Show UI
+    updateSummary();
+    document.getElementById('summaryBar').style.display = 'grid';
+    document.getElementById('tabBar').style.display = 'flex';
+    setStatus('SCAN COMPLETE — ' + url);
+
+    // Show JS count in tab
+    if (scanData.js.length > 0) {
+      const cnt = document.getElementById('tabJsCount');
+      cnt.style.display = 'inline';
+      const totalSecrets = scanData.js.reduce((a,f) => a + (f.secrets||[]).length, 0);
+      cnt.textContent = totalSecrets;
+      if (totalSecrets === 0) cnt.className = 'count good';
+    }
+
+  } catch(err) {
+    showAlert('Scan error: ' + err.message, 'err');
+    setStatus('SCAN ERROR');
+  } finally {
+    document.getElementById('scanBtn').disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER: SECURITY HEADERS
+// ═══════════════════════════════════════════════════════════
+function renderHeaders(headers) {
+  const container = document.getElementById('hdrResults');
+  document.getElementById('hdrEmpty').style.display = 'none';
+  container.style.display = 'block';
+
+  let html = '';
+
+  // Score calculation
+  let score = 100;
+  HEADERS_DEF.forEach(h => {
+    const val = headers[h.name.toLowerCase()];
+    const present = h.check(val);
+    if (!present) {
+      if (h.severity === 'critical') score -= 20;
+      else if (h.severity === 'high') score -= 15;
+      else if (h.severity === 'medium') score -= 8;
+      else score -= 3;
+    }
+  });
+  score = Math.max(0, score);
+  const grade = score >= 90 ? 'A' : score >= 75 ? 'B' : score >= 55 ? 'C' : score >= 35 ? 'D' : 'F';
+
+  html += `<div class="section-hdr">
+    <span class="icon">⚔</span>
+    <h2>SECURITY HEADERS ANALYSIS</h2>
+    <span class="score ${grade}">${grade} (${score}/100)</span>
+  </div>`;
+
+  // Required / Recommended headers
+  html += `<div style="margin-bottom:8px;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;">Required & Recommended Headers</div>`;
+  HEADERS_DEF.forEach(h => {
+    const val = headers[h.name.toLowerCase()];
+    const present = h.check(val);
+    const warn = h.warn ? h.warn(val) : null;
+    let rowClass = present ? 'present' : 'missing';
+    let statusClass = present ? 'ok' : 'fail';
+    let dotClass = present ? 'dot-green' : 'dot-red';
+    let statusText = present ? '✔ PRESENT' : '✘ MISSING';
+
+    if (present && warn) {
+      rowClass = 'warn';
+      statusClass = 'warn';
+      dotClass = 'dot-yellow';
+      statusText = '⚠ WEAK';
+    }
+
+    let detail = '';
+    if (present) {
+      detail += `<div class="val">${escHtml(val)}</div>`;
+      if (warn) detail += `<div class="recm">${warn}</div>`;
+    } else {
+      detail += `<div style="color:var(--text2);font-size:11px;">${h.desc}</div>`;
+      detail += `<div class="example">Recommended: <code style="color:var(--cyan)">${escHtml(h.example)}</code></div>`;
+    }
+
+    if (!present) {
+      if (h.severity === 'critical') summaryCount.crit++;
+      else if (h.severity === 'high') summaryCount.crit++;
+      else if (h.severity === 'medium') summaryCount.high++;
+    } else summaryCount.safe++;
+
+    html += `<div class="hdr-row ${rowClass}">
+      <div><div class="hdr-name">${h.name}</div><div style="font-size:10px;color:var(--text2);margin-top:3px;letter-spacing:1px;">${h.category.toUpperCase()} · ${h.severity.toUpperCase()}</div></div>
+      <div class="hdr-status ${statusClass}"><span class="dot ${dotClass}"></span>${statusText}</div>
+      <div class="hdr-detail">${detail}</div>
+    </div>`;
+  });
+
+  // Info disclosure
+  html += `<div style="margin-top:24px;margin-bottom:8px;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;">Information Disclosure Headers</div>`;
+  DISCLOSURE_HEADERS.forEach(h => {
+    const val = headers[h.name.toLowerCase()];
+    const present = !!val;
+    if (present) {
+      html += `<div class="hdr-row info-disc">
+        <div><div class="hdr-name">${h.name}</div><div style="font-size:10px;color:var(--orange);margin-top:3px;">INFO DISCLOSURE</div></div>
+        <div class="hdr-status info"><span class="dot dot-orange"></span>EXPOSED</div>
+        <div class="hdr-detail"><div class="val">${escHtml(val)}</div><div class="example" style="color:var(--orange);">${h.desc} Consider removing this header.</div></div>
+      </div>`;
+      summaryCount.med++;
+    }
+  });
+
+  // Other interesting headers
+  const interesting = ['access-control-allow-origin','access-control-allow-credentials','access-control-allow-methods','via','x-request-id','x-cache','cf-ray','x-ratelimit-limit'];
+  const found = interesting.filter(h => headers[h]);
+  if (found.length) {
+    html += `<div style="margin-top:24px;margin-bottom:8px;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;">Other Notable Headers</div>`;
+    found.forEach(h => {
+      html += `<div class="hdr-row" style="border-left:3px solid var(--blue);">
+        <div><div class="hdr-name">${h}</div></div>
+        <div class="hdr-status" style="color:var(--blue)"><span class="dot" style="background:var(--blue)"></span>PRESENT</div>
+        <div class="hdr-detail"><div class="val">${escHtml(headers[h])}</div></div>
+      </div>`;
+    });
+  }
+
+  container.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  JS RECON
+// ═══════════════════════════════════════════════════════════
+async function runJsRecon(baseUrl, pageHtml) {
+  const origin = new URL(baseUrl).origin;
+  // Find all script src tags
+  const scriptUrls = new Set();
+  const scriptRx = /<script[^>]+src\s*=\s*['"]([^'"]+)['"]/gi;
+  let m;
+  while ((m = scriptRx.exec(pageHtml)) !== null) {
+    let src = m[1];
+    if (!src.startsWith('http')) src = src.startsWith('//') ? 'https:' + src : origin + (src.startsWith('/') ? '' : '/') + src;
+    // skip popular CDNs that won't have app secrets
+    if (/googleapis|gstatic|cloudflare|jquery\.com|bootstrapcdn|analytics|gtag|facebook\.net|twitter\.com/.test(src)) continue;
+    scriptUrls.add(src);
+  }
+
+  // Also inline scripts can have endpoints
+  const inlineRx = /<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/gi;
+  const inlineContents = [];
+  while ((m = inlineRx.exec(pageHtml)) !== null) {
+    if (m[1] && m[1].trim().length > 20) inlineContents.push({ url: baseUrl + '#inline', content: m[1] });
+  }
+
+  summaryCount.js = scriptUrls.size + inlineContents.length;
+
+  const results = [];
+
+  // Scan inline scripts
+  for (const ic of inlineContents) {
+    const scanned = scanJsContent(ic.content, ic.url);
+    if (scanned.secrets.length || scanned.endpoints.length) results.push(scanned);
+  }
+
+  // Fetch and scan external JS files
+  const scriptArr = [...scriptUrls];
+  for (let i = 0; i < scriptArr.length; i++) {
+    const jsUrl = scriptArr[i];
+    setProgress(35 + Math.floor((i / scriptArr.length) * 25), `Scanning JS [${i+1}/${scriptArr.length}]: ${jsUrl.split('/').pop()}…`);
+    const r = await proxyFetchText(jsUrl);
+    if (r.ok) {
+      const scanned = scanJsContent(r.text, jsUrl);
+      results.push(scanned);
+    } else {
+      results.push({ url: jsUrl, secrets: [], endpoints: [], error: r.error });
+    }
+  }
+
+  scanData.js = results;
+  renderJs(results);
+}
+
+function scanJsContent(code, url) {
+  const secrets = [];
+  const endpoints = [];
+  const seen = new Set();
+
+  // Secret scanning
+  for (const pat of SECRET_PATTERNS) {
+    const rx = new RegExp(pat.rx.source, pat.rx.flags);
+    let m;
+    while ((m = rx.exec(code)) !== null) {
+      const raw = m[1] || m[0];
+      const key = pat.name + '::' + raw.slice(0, 30);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      // Skip obvious false positives
+      if (/^(true|false|null|undefined|this\.|self\.|window\.|document\.)/.test(raw)) continue;
+      if (raw.length > 200) continue;
+      secrets.push({ type: pat.name, sev: pat.sev, raw: raw, match: m[0].slice(0, 120) });
+    }
+  }
+
+  // Endpoint extraction
+  const epSeen = new Set();
+  for (const pat of ENDPOINT_PATTERNS) {
+    const rx = new RegExp(pat.rx.source, pat.rx.flags);
+    let m;
+    while ((m = rx.exec(code)) !== null) {
+      const ep = (m[1] || m[0]).trim().replace(/['"` ]/g,'');
+      if (epSeen.has(ep)) continue;
+      if (ep.length < 3 || ep.length > 200) continue;
+      if (/^(true|false|null|undefined|\d+)$/.test(ep)) continue;
+      if (/\.(png|jpg|gif|svg|css|woff|ttf|ico)(\?|$)/i.test(ep)) continue;
+      epSeen.add(ep);
+      endpoints.push({ url: ep, method: pat.method });
+    }
+  }
+
+  // Count severities
+  const sevCount = { critical:0, high:0, medium:0, low:0, info:0 };
+  secrets.forEach(s => { sevCount[s.sev] = (sevCount[s.sev]||0)+1; });
+
+  summaryCount.ep += endpoints.length;
+  summaryCount.sec += secrets.length;
+
+  return { url, secrets, endpoints, sevCount, size: code.length };
+}
+
+function renderJs(files) {
+  const container = document.getElementById('jsResults');
+  document.getElementById('jsEmpty').style.display = 'none';
+  container.style.display = 'block';
+
+  let html = `<div class="section-hdr">
+    <span class="icon">📜</span>
+    <h2>JS RECON — ${files.length} FILE(S) SCANNED</h2>
+  </div>`;
+
+  const totalSec = files.reduce((a,f) => a+(f.secrets||[]).length, 0);
+  const totalEp  = files.reduce((a,f) => a+(f.endpoints||[]).length, 0);
+
+  html += `<div class="note">⚡ Found <strong style="color:var(--red)">${totalSec} potential secrets</strong> and <strong style="color:var(--purple)">${totalEp} endpoints</strong> across ${files.length} JS files. Verify findings manually — regex matches require human validation.</div>`;
+
+  if (!files.length) {
+    html += `<div class="empty"><div class="icon">✓</div><p>No external JavaScript files found or accessible.</p></div>`;
+    container.innerHTML = html; return;
+  }
+
+  for (const f of files) {
+    const hasFindings = (f.secrets && f.secrets.length) || (f.endpoints && f.endpoints.length);
+    const fname = f.url.split('/').pop().split('?')[0] || 'inline';
+    const sc = f.sevCount || {};
+
+    let stats = '';
+    if (sc.critical) stats += `<span class="stat-badge crit">🔴 ${sc.critical} CRIT</span>`;
+    if (sc.high)     stats += `<span class="stat-badge high">🟠 ${sc.high} HIGH</span>`;
+    if (sc.medium)   stats += `<span class="stat-badge med">🟡 ${sc.medium} MED</span>`;
+    if (sc.low)      stats += `<span class="stat-badge low">🔵 ${sc.low} LOW</span>`;
+    if (f.endpoints && f.endpoints.length) stats += `<span class="stat-badge ep">🟣 ${f.endpoints.length} EP</span>`;
+    if (!stats) stats = `<span class="stat-badge low" style="color:var(--green);border-color:var(--green2)">✔ CLEAN</span>`;
+
+    html += `<div class="file-block ${hasFindings ? 'open' : ''}" id="fb-${fname.replace(/\W/g,'_')}">
+      <div class="file-hdr" onclick="this.parentElement.classList.toggle('open')">
+        <span style="color:var(--text2);font-size:12px;">📄</span>
+        <span class="filename">${escHtml(f.url)}</span>
+        <div class="file-stats">${stats}</div>
+      </div>
+      <div class="file-body">`;
+
+    if (f.error) {
+      html += `<div class="alert alert-warn">Could not fetch: ${escHtml(f.error)}</div>`;
+    }
+
+    // Secrets
+    if (f.secrets && f.secrets.length) {
+      html += `<div style="font-size:11px;letter-spacing:3px;color:var(--red);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">⚠ SECRETS / CREDENTIALS DETECTED</div>`;
+      f.secrets.forEach(s => {
+        const sevClass = 'sev-' + s.sev;
+        html += `<div class="secret-item">
+          <div class="secret-type">${escHtml(s.type)}</div>
+          <div><span class="severity ${sevClass}">${s.sev.toUpperCase()}</span></div>
+          <div class="secret-val">${escHtml(maskSecret(s.raw))}</div>
+        </div>`;
+      });
+    }
+
+    // Endpoints
+    if (f.endpoints && f.endpoints.length) {
+      html += `<div style="font-size:11px;letter-spacing:3px;color:var(--purple);margin-top:16px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">📡 EXTRACTED ENDPOINTS / URLS</div>`;
+      f.endpoints.slice(0, 60).forEach(ep => {
+        const mc = 'm-' + ep.method;
+        html += `<div class="endpoint-item">
+          <span class="method-badge ${mc}">${ep.method}</span>
+          <span class="ep-url">${escHtml(ep.url)}</span>
+        </div>`;
+      });
+      if (f.endpoints.length > 60) html += `<div style="padding:8px 12px;font-size:11px;color:var(--text2)">… and ${f.endpoints.length - 60} more</div>`;
+    }
+
+    if (!hasFindings && !f.error) {
+      html += `<div style="padding:16px;color:var(--green);font-size:12px;">✔ No secrets or notable endpoints detected in this file.</div>`;
+    }
+
+    html += `</div></div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER: COOKIES
+// ═══════════════════════════════════════════════════════════
+function renderCookies(cookieHeaders, rawSetCookie) {
+  const container = document.getElementById('cookieResults');
+  document.getElementById('cookieEmpty').style.display = 'none';
+  container.style.display = 'block';
+
+  // Combine all set-cookie values
+  const allCookies = [...cookieHeaders];
+  if (rawSetCookie) allCookies.push(...rawSetCookie.split(',').filter(c => c.trim()));
+
+  let html = `<div class="section-hdr">
+    <span class="icon">🍪</span>
+    <h2>COOKIE SECURITY AUDIT — ${allCookies.length} COOKIE(S)</h2>
+  </div>`;
+
+  if (!allCookies.length) {
+    html += `<div style="color:var(--text2);font-size:13px;padding:20px;">No Set-Cookie headers found in the response.</div>`;
+    container.innerHTML = html; return;
+  }
+
+  allCookies.forEach(raw => {
+    const parts = raw.split(';').map(p => p.trim());
+    const nameVal = parts[0] || '';
+    const [name] = nameVal.split('=');
+    const attrs = parts.slice(1).map(p => p.toLowerCase());
+
+    const secure    = attrs.some(a => a === 'secure');
+    const httpOnly  = attrs.some(a => a === 'httponly');
+    const sameSite  = attrs.find(a => a.startsWith('samesite='));
+    const expires   = parts.find(p => /expires|max-age/i.test(p));
+
+    html += `<div class="cookie-row">
+      <div>
+        <div class="cookie-name">${escHtml(name || 'unknown')}</div>
+        <div class="cookie-flags">
+          <span class="flag ${secure?'ok':'bad'}">${secure?'🔒 Secure':'⚠ No Secure'}</span>
+          <span class="flag ${httpOnly?'ok':'bad'}">${httpOnly?'🔒 HttpOnly':'⚠ No HttpOnly'}</span>
+          ${sameSite
+            ? `<span class="flag ${/=strict|=lax/.test(sameSite)?'ok':'warn'}">${sameSite.toUpperCase()}</span>`
+            : `<span class="flag bad">⚠ No SameSite</span>`
+          }
+          ${expires ? `<span class="flag warn">${escHtml(expires)}</span>` : ''}
+        </div>
+      </div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text2);word-break:break-all;">${escHtml(raw.slice(0,200))}</div>
+    </div>`;
+    if (!secure || !httpOnly) summaryCount.med++;
+  });
+
+  container.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER: TECH FINGERPRINTING
+// ═══════════════════════════════════════════════════════════
+function renderTech(headers, pageHtml) {
+  const container = document.getElementById('techResults');
+  document.getElementById('techEmpty').style.display = 'none';
+  container.style.display = 'block';
+
+  const detected = [];
+
+  // Server / backend
+  const server = headers['server'] || '';
+  const powered = headers['x-powered-by'] || '';
+  if (/apache/i.test(server)) detected.push({ cat:'Web Server', name:'Apache HTTP Server', val:server, sev:'med' });
+  else if (/nginx/i.test(server)) detected.push({ cat:'Web Server', name:'NGINX', val:server, sev:'low' });
+  else if (/iis/i.test(server)) detected.push({ cat:'Web Server', name:'Microsoft IIS', val:server, sev:'med' });
+  else if (/cloudflare/i.test(server)) detected.push({ cat:'CDN', name:'Cloudflare', val:server, sev:'low' });
+  else if (server) detected.push({ cat:'Web Server', name:server, val:server, sev:'low' });
+
+  if (/php/i.test(powered)) detected.push({ cat:'Backend', name:'PHP', val:powered, sev:'med' });
+  if (/express/i.test(powered)) detected.push({ cat:'Backend', name:'Node.js / Express', val:powered, sev:'low' });
+  if (/asp\.net/i.test(powered)) detected.push({ cat:'Backend', name:'ASP.NET', val:powered, sev:'med' });
+
+  // HTML analysis
+  if (/wp-content|wp-includes|wordpress/i.test(pageHtml)) detected.push({ cat:'CMS', name:'WordPress', val:'Detected via HTML', sev:'med' });
+  if (/drupal\.js|Drupal\./i.test(pageHtml)) detected.push({ cat:'CMS', name:'Drupal', val:'Detected via JS global', sev:'med' });
+  if (/__next\/|_next\/static/i.test(pageHtml)) detected.push({ cat:'Framework', name:'Next.js (React)', val:'_next/ paths', sev:'low' });
+  if (/nuxt|__NUXT__/i.test(pageHtml)) detected.push({ cat:'Framework', name:'Nuxt.js (Vue)', val:'__NUXT__ global', sev:'low' });
+  if (/angular\.js|ng-version/i.test(pageHtml)) detected.push({ cat:'Framework', name:'Angular', val:'ng-version attr', sev:'low' });
+  if (/gatsby/i.test(pageHtml)) detected.push({ cat:'Framework', name:'Gatsby', val:'Detected', sev:'low' });
+  if (/shopify/i.test(pageHtml)) detected.push({ cat:'Platform', name:'Shopify', val:'Detected', sev:'low' });
+  if (/wix\.com|X-Wix-/i.test(pageHtml + JSON.stringify(headers))) detected.push({ cat:'Platform', name:'Wix', val:'Detected', sev:'low' });
+  if (/joomla/i.test(pageHtml)) detected.push({ cat:'CMS', name:'Joomla', val:'Detected', sev:'med' });
+  if (/react/i.test(pageHtml) && !detected.find(d => d.name.includes('React'))) detected.push({ cat:'Framework', name:'React', val:'Detected', sev:'low' });
+  if (/vue\.js|VueRouter|__vue_/i.test(pageHtml)) detected.push({ cat:'Framework', name:'Vue.js', val:'Detected', sev:'low' });
+
+  // Security headers as tech clues
+  if (headers['cf-ray']) detected.push({ cat:'CDN', name:'Cloudflare', val:headers['cf-ray'], sev:'low' });
+  if (headers['x-cache']) detected.push({ cat:'Cache', name:'Varnish/CDN Cache', val:headers['x-cache'], sev:'low' });
+
+  scanData.tech = detected;
+
+  const sevColor = { low:'var(--blue)', med:'var(--yellow)', high:'var(--orange)', crit:'var(--red)' };
+  let html = `<div class="section-hdr">
+    <span class="icon">🔍</span>
+    <h2>TECHNOLOGY FINGERPRINTING</h2>
+  </div>`;
+
+  if (!detected.length) {
+    html += `<div style="color:var(--text2);font-size:13px;padding:20px;">No specific technologies identified from response headers and HTML.</div>`;
+    container.innerHTML = html; return;
+  }
+
+  html += `<div class="info-grid">`;
+  detected.forEach(d => {
+    const col = sevColor[d.sev] || 'var(--cyan)';
+    html += `<div class="info-card ${d.sev==='med'?'warn':d.sev==='high'||d.sev==='crit'?'danger':''}">
+      <div class="ic-label">${d.cat}</div>
+      <div class="ic-value" style="color:${col}">${escHtml(d.name)}</div>
+      <div class="ic-sub">${escHtml(d.val)}</div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  // All response headers dump
+  html += `<div style="margin-top:24px;">
+    <div class="section-hdr"><span class="icon">📋</span><h2>RAW RESPONSE HEADERS</h2></div>
+    <pre>`;
+  for (const [k,v] of Object.entries(scanData.headers)) {
+    html += escHtml(`${k}: ${v}`) + '\n';
+  }
+  html += `</pre></div>`;
+
+  container.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER: ROBOTS / SITEMAP
+// ═══════════════════════════════════════════════════════════
+async function runRobots(baseUrl) {
+  const origin = new URL(baseUrl).origin;
+  const robotsUrl = origin + '/robots.txt';
+  const sitemapUrl = origin + '/sitemap.xml';
+
+  const [rRes, sRes] = await Promise.all([
+    proxyFetchText(robotsUrl),
+    proxyFetchText(sitemapUrl),
+  ]);
+
+  scanData.robots = rRes.ok ? rRes.text : null;
+  scanData.sitemap = sRes.ok ? sRes.text : null;
+
+  renderRobots(scanData.robots, scanData.sitemap, robotsUrl, sitemapUrl);
+}
+
+function renderRobots(robotsTxt, sitemapXml, robotsUrl, sitemapUrl) {
+  const container = document.getElementById('robotsResults');
+  document.getElementById('robotsEmpty').style.display = 'none';
+  container.style.display = 'block';
+
+  let html = `<div class="section-hdr"><span class="icon">🤖</span><h2>ROBOTS.TXT & SITEMAP ANALYSIS</h2></div>`;
+
+  // Robots.txt
+  html += `<div style="margin-bottom:20px;">
+    <div style="font-size:11px;letter-spacing:3px;color:var(--cyan);margin-bottom:12px;">ROBOTS.TXT — <a href="${escHtml(robotsUrl)}" target="_blank" style="color:var(--cyan)">${escHtml(robotsUrl)}</a></div>`;
+
+  if (robotsTxt) {
+    html += `<div class="alert alert-ok">✔ robots.txt found</div>`;
+
+    // Extract disallowed paths — these are interesting for pentesters
+    const disallowed = [];
+    const sitemapRefs = [];
+    robotsTxt.split('\n').forEach(line => {
+      if (/^Disallow:\s*/i.test(line)) {
+        const p = line.replace(/^Disallow:\s*/i,'').trim();
+        if (p && p !== '/') disallowed.push(p);
+      }
+      if (/^Sitemap:\s*/i.test(line)) sitemapRefs.push(line.replace(/^Sitemap:\s*/i,'').trim());
+    });
+
+    if (disallowed.length) {
+      html += `<div class="alert alert-warn">⚠ ${disallowed.length} Disallowed path(s) found — potential hidden directories!</div>`;
+      html += `<div style="margin-bottom:12px;">`;
+      disallowed.forEach(p => {
+        html += `<div class="endpoint-item">
+          <span class="method-badge m-ANY">PATH</span>
+          <span class="ep-url">${escHtml(p)}</span>
+        </div>`;
+      });
+      html += `</div>`;
+      summaryCount.med++;
+    }
+
+    if (sitemapRefs.length) {
+      html += `<div style="font-size:12px;color:var(--purple);margin-bottom:8px;">📌 Sitemap References:</div>`;
+      sitemapRefs.forEach(r => {
+        html += `<div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--cyan);padding:4px 12px;">${escHtml(r)}</div>`;
+      });
+    }
+
+    html += `<pre style="margin-top:12px;max-height:200px;overflow-y:auto;">${escHtml(robotsTxt)}</pre>`;
+  } else {
+    html += `<div class="alert alert-warn">robots.txt not found or inaccessible.</div>`;
+  }
+
+  html += `</div>`;
+
+  // Sitemap
+  html += `<div>
+    <div style="font-size:11px;letter-spacing:3px;color:var(--cyan);margin-bottom:12px;">SITEMAP.XML — <a href="${escHtml(sitemapUrl)}" target="_blank" style="color:var(--cyan)">${escHtml(sitemapUrl)}</a></div>`;
+  if (sitemapXml) {
+    html += `<div class="alert alert-ok">✔ sitemap.xml found</div>`;
+    // Count URLs
+    const urlCount = (sitemapXml.match(/<loc>/gi) || []).length;
+    html += `<div style="color:var(--cyan);font-family:'Share Tech Mono',monospace;font-size:13px;margin:8px 0;">📍 ${urlCount} URL(s) indexed in sitemap</div>`;
+
+    // Extract unique paths
+    const locs = [...sitemapXml.matchAll(/<loc>([^<]+)<\/loc>/gi)].map(m => m[1]).slice(0, 20);
+    locs.forEach(l => {
+      html += `<div class="endpoint-item">
+        <span class="method-badge m-GET">URL</span>
+        <span class="ep-url">${escHtml(l)}</span>
+      </div>`;
+    });
+    if (urlCount > 20) html += `<div style="padding:8px 12px;font-size:11px;color:var(--text2)">… and ${urlCount - 20} more URLs</div>`;
+  } else {
+    html += `<div class="alert alert-warn">sitemap.xml not found.</div>`;
+  }
+  html += `</div>`;
+
+  container.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  AI ANALYSIS
+// ═══════════════════════════════════════════════════════════
+async function runAiAnalysis(url, headers, jsFiles) {
+  const aiContainer = document.getElementById('aiResults');
+  const aiEmpty = document.getElementById('aiEmpty');
+  aiEmpty.style.display = 'none';
+  aiContainer.style.display = 'block';
+  aiContainer.innerHTML = `<div class="section-hdr"><span class="icon">🤖</span><h2>AI SECURITY ANALYSIS</h2></div>
+    <div class="ai-output"><div class="thinking"><span class="spin"></span>  Analyzing security posture with Claude AI…</div></div>`;
+
+  // Build summary for AI
+  const missingHeaders = HEADERS_DEF.filter(h => !h.check(headers[h.name.toLowerCase()])).map(h => h.name);
+  const disclosedHeaders = DISCLOSURE_HEADERS.filter(h => headers[h.name.toLowerCase()]).map(h => ({name:h.name, val:headers[h.name.toLowerCase()]}));
+  const allSecrets = jsFiles.flatMap(f => f.secrets||[]).slice(0, 30);
+  const allEndpoints = jsFiles.flatMap(f => f.endpoints||[]).slice(0, 30);
+  const techInfo = (scanData.tech || []).map(t => t.name);
+
+  const prompt = `You are a senior penetration tester. Analyze this security scan of ${url} and provide a professional, detailed security assessment.
+
+SECURITY HEADERS STATUS:
+Missing: ${missingHeaders.join(', ') || 'None'}
+All headers: ${JSON.stringify(Object.fromEntries(Object.entries(headers).slice(0, 20)))}
+
+INFO DISCLOSURE: ${disclosedHeaders.map(h => `${h.name}: ${h.val}`).join('; ') || 'None'}
+
+DETECTED TECHNOLOGIES: ${techInfo.join(', ') || 'Unknown'}
+
+SECRETS/CREDENTIALS FOUND IN JS (${allSecrets.length} total):
+${allSecrets.slice(0, 10).map(s => `- [${s.sev.toUpperCase()}] ${s.type}: ${s.raw.slice(0,60)}`).join('\n')}
+
+ENDPOINTS EXTRACTED (${allEndpoints.length} total):
+${allEndpoints.slice(0, 15).map(e => `- ${e.method} ${e.url}`).join('\n')}
+
+ROBOTS.TXT: ${scanData.robots ? 'Present' : 'Not found'}
+
+Provide:
+1. **EXECUTIVE RISK RATING**: Critical/High/Medium/Low with justification
+2. **TOP 5 VULNERABILITIES**: In order of severity with exploitation potential
+3. **ATTACK VECTORS**: Specific attack scenarios possible with these findings
+4. **CRITICAL FINDINGS**: Any immediately exploitable issues
+5. **REMEDIATION PRIORITY**: Ordered list of fixes
+6. **RECON VALUE**: What these findings tell us about the target's security posture
+
+Format with clear sections. Be specific and actionable. Use pentest-focused language.`;
+
+  const aiResponse = await callAI(prompt);
+
+  if (aiResponse) {
+    aiContainer.innerHTML = `<div class="section-hdr"><span class="icon">🤖</span><h2>AI SECURITY ANALYSIS</h2></div>
+      <div class="ai-output">${formatAiResponse(aiResponse)}</div>`;
+  } else {
+    aiContainer.innerHTML = `<div class="section-hdr"><span class="icon">🤖</span><h2>AI SECURITY ANALYSIS</h2></div>
+      <div class="alert alert-warn">AI analysis unavailable. The Cloudflare worker may not support the Anthropic API proxy format. Check the worker configuration.</div>
+      <div class="note">To enable AI: ensure your worker.js proxies POST requests to the Anthropic API with the API key attached.</div>`;
+  }
+}
+
+function formatAiResponse(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^#{1,3}\s+(.+)$/gm, '<div style="font-size:13px;letter-spacing:2px;color:var(--cyan);margin-top:16px;margin-bottom:6px;font-family:Orbitron,monospace;">$1</div>')
+    .replace(/^- (.+)$/gm, '<div class="ai-finding">▶ $1</div>')
+    .replace(/\[CRITICAL\]/gi, '<span class="risk-high">[CRITICAL]</span>')
+    .replace(/\[HIGH\]/gi, '<span class="risk-high">[HIGH]</span>')
+    .replace(/\[MEDIUM\]/gi, '<span class="risk-med">[MEDIUM]</span>')
+    .replace(/\[LOW\]/gi, '<span class="risk-low">[LOW]</span>')
+    .replace(/Critical/g, '<span class="risk-high">Critical</span>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SUMMARY UPDATE
+// ═══════════════════════════════════════════════════════════
+function updateSummary() {
+  document.getElementById('sumCrit').textContent = summaryCount.crit;
+  document.getElementById('sumHigh').textContent = summaryCount.high;
+  document.getElementById('sumMed').textContent  = summaryCount.med;
+  document.getElementById('sumSafe').textContent = summaryCount.safe;
+  document.getElementById('sumJs').textContent   = summaryCount.js;
+  document.getElementById('sumEp').textContent   = summaryCount.ep;
+  document.getElementById('sumSec').textContent  = summaryCount.sec;
+
+  const total = summaryCount.crit * 20 + summaryCount.high * 10 + summaryCount.med * 5 + summaryCount.sec * 15;
+  let grade, col;
+  if (total === 0) { grade = 'A+'; col = 'var(--green)'; }
+  else if (total < 10) { grade = 'B'; col = '#88ff44'; }
+  else if (total < 25) { grade = 'C'; col = 'var(--yellow)'; }
+  else if (total < 50) { grade = 'D'; col = 'var(--orange)'; }
+  else { grade = 'F'; col = 'var(--red)'; }
+
+  const scoreEl = document.getElementById('sumScore');
+  scoreEl.textContent = grade;
+  scoreEl.style.color = col;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════════
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// Allow Enter key
+document.getElementById('urlInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startScan();
+});
+
+// Load sample target on page load
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('urlInput').placeholder = 'https://target-application.com';
+});
+</script>
+</body>
+</html>
