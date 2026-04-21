@@ -254,6 +254,20 @@ footer{position:fixed;bottom:0;left:0;right:0;background:#04060e;border-top:1px 
 
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--cyan)}
 
+/* PASTE MODE */
+.paste-panel{background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--purple);padding:18px 24px;margin-top:10px;display:none;position:relative;overflow:hidden}
+.paste-panel.show{display:block}
+.paste-panel::before{content:'MANUAL JS INJECT MODE';position:absolute;top:7px;left:24px;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:4px;color:var(--purple);opacity:.5}
+.paste-lbl{font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin:18px 0 8px}
+.paste-url{width:100%;background:var(--bg);border:1px solid var(--border);color:#fff;font-family:'Share Tech Mono',monospace;font-size:12px;padding:10px 14px;outline:none;margin-bottom:8px}
+.paste-url:focus{border-color:var(--purple);box-shadow:0 0 12px #cc44ff33}
+.paste-ta{width:100%;min-height:140px;max-height:300px;background:var(--bg);border:1px solid var(--border);color:var(--cyan);font-family:'Share Tech Mono',monospace;font-size:11px;padding:12px 14px;outline:none;resize:vertical;line-height:1.5}
+.paste-ta:focus{border-color:var(--purple);box-shadow:0 0 12px #cc44ff33}
+.paste-row{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+.btn-paste{background:linear-gradient(135deg,var(--purple),#8800cc);color:#fff;font-weight:700}
+.btn-paste:hover:not(:disabled){filter:brightness(1.2);transform:translateY(-1px);box-shadow:0 6px 20px #cc44ff44}
+.paste-hint{font-size:10px;color:var(--text3);font-family:'Share Tech Mono',monospace;flex:1}
+
 @media(max-width:700px){
   .hr{grid-template-columns:1fr}
   .si{grid-template-columns:1fr}
@@ -284,9 +298,9 @@ footer{position:fixed;bottom:0;left:0;right:0;background:#04060e;border-top:1px 
 
 <!-- SCAN BOX -->
 <div class="scan-box">
-  <div class="scan-lbl">Target URL — Enter full URL to scan</div>
+  <div class="scan-lbl">Target URL — Enter full URL or a direct .js file URL to scan</div>
   <div class="scan-row">
-    <input type="text" class="url-in" id="urlIn" placeholder="https://target-application.com" spellcheck="false" autocomplete="off">
+    <input type="text" class="url-in" id="urlIn" placeholder="https://target-application.com  or  https://target.com/static/js/main.abc123.js" spellcheck="false" autocomplete="off">
     <button class="btn btn-scan" id="scanBtn" onclick="startScan()">⚡ SCAN NOW</button>
     <button class="btn btn-clr" onclick="clearAll()">✕ CLEAR</button>
   </div>
@@ -300,12 +314,29 @@ footer{position:fixed;bottom:0;left:0;right:0;background:#04060e;border-top:1px 
     <label class="opt"><input type="checkbox" id="oR" checked><label for="oR">Robots/Sitemap</label></label>
     <label class="opt"><input type="checkbox" id="oA" checked><label for="oA">AI Analysis</label></label>
   </div>
+  <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <button class="btn" style="background:transparent;border:1px solid var(--purple);color:var(--purple);font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:8px 16px;cursor:pointer" onclick="togglePasteMode()">📋 PASTE JS CONTENT</button>
+    <span style="font-size:10px;color:var(--text3);font-family:'Share Tech Mono',monospace">↑ For internal/dev servers you can access — paste the raw JS, scan without any proxy</span>
+  </div>
   <div class="prog-wrap" id="progWrap">
     <div class="prog-lbl" id="progLbl">Initializing…</div>
     <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
     <div class="prog-steps" id="progSteps"></div>
   </div>
   <div class="proxy-info" id="proxyInfo">Proxy: <span id="proxyUsed">—</span></div>
+</div>
+
+<!-- PASTE JS PANEL -->
+<div class="paste-panel" id="pastePanel">
+  <div class="paste-lbl">JS File URL (optional — for context only, not fetched)</div>
+  <input class="paste-url" id="pasteUrl" type="text" placeholder="https://your-dev-server.internal/static/js/main.abc123.js" spellcheck="false">
+  <div class="paste-lbl">Paste Raw JS Content Below</div>
+  <textarea class="paste-ta" id="pasteContent" placeholder="Paste the full contents of the JS file here…&#10;&#10;Open the JS file in your browser, Ctrl+A to select all, Ctrl+C to copy, then paste here.&#10;Works for internal/VPN-only servers that proxies cannot reach."></textarea>
+  <div class="paste-row">
+    <button class="btn btn-paste" onclick="scanPastedJs()">🔬 SCAN PASTED JS</button>
+    <button class="btn btn-clr" onclick="togglePasteMode()">✕ CLOSE</button>
+    <span class="paste-hint">Tip: In Chrome/Firefox, open the JS URL → Ctrl+A → Ctrl+C → paste here</span>
+  </div>
 </div>
 
 <!-- ALERTS -->
@@ -398,11 +429,24 @@ const WORKER   = 'https://resumelens-proxy.somnathsahoo0069.workers.dev/';
 const AI_MODEL = 'claude-sonnet-4-20250514';
 
 // Multiple proxy strategies — tried in order
+// Strategy 1: Direct fetch — works when target is on same network / VPN / no CORS restriction
+// Strategy 2+: Public CORS proxies for internet-accessible targets
 const PROXIES = [
+  // Direct fetch — best for intranet / dev servers you can access from your browser
+  { name:'Direct',           fn: url => fetch(url, {mode:'cors', credentials:'omit', cache:'no-store'}) },
+  // Custom Cloudflare Worker proxy
   { name:'Worker(?url=)',    fn: url => fetch(`${WORKER}?url=${encodeURIComponent(url)}`, {method:'GET', headers:{'X-Scanner':'VulnScanPro'}}) },
-  { name:'Worker(path)',     fn: url => fetch(`${WORKER}${url}`, {method:'GET'}) },
+  // corsproxy.io — transparent, forwards target headers
   { name:'corsproxy.io',     fn: url => fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`) },
+  // allorigins — returns body as JSON envelope
   { name:'allorigins(raw)',  fn: url => fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`) },
+  { name:'allorigins(get)',  fn: url => fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`) },
+  // codetabs proxy
+  { name:'codetabs',         fn: url => fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`) },
+  // thingproxy
+  { name:'thingproxy',       fn: url => fetch(`https://thingproxy.freeboard.io/fetch/${url}`) },
+  // Worker path variant
+  { name:'Worker(path)',     fn: url => fetch(`${WORKER}${url}`, {method:'GET'}) },
 ];
 
 // ═══════════════════════════════════════════════════════════
@@ -515,78 +559,86 @@ const DISCLOSURE_HDRS = [
 // SECRET PATTERNS (50+)
 // ═══════════════════════════════════════════════════════════
 const SECRETS = [
-  // React / Next / Vue env vars
-  { n:'React Enc/Dec Secret Key', s:'critical', rx:/(?:REACT_APP_ENC(?:RYPT(?:ION)?)?_?(?:DEC(?:RYPT(?:ION)?)?_?)?(?:SECRET_?)?KEY[_A-Z0-9]*)['"]?\s*[:=]\s*['"`]([^'"`\s]{6,})['"`]/gi },
-  { n:'React App Env Variable',   s:'high',     rx:/process\.env\.REACT_APP_([A-Z_]+)\s*\|\|\s*['"`]([^'"`\s]{4,})['"`]/gi },
-  { n:'React Env Hardcoded',      s:'high',     rx:/REACT_APP_[A-Z_0-9]+\s*[:=]\s*['"`]([^'"`\s]{4,})['"`]/gi },
-  { n:'Next.js Public Env',       s:'high',     rx:/NEXT_PUBLIC_[A-Z_0-9]+\s*[:=]\s*['"`]([^'"`\s]{4,})['"`]/gi },
-  { n:'Vue App Env Variable',     s:'high',     rx:/VUE_APP_[A-Z_0-9]+\s*[:=]\s*['"`]([^'"`\s]{4,})['"`]/gi },
-  { n:'Vite Env Variable',        s:'high',     rx:/VITE_[A-Z_0-9]+\s*[:=]\s*['"`]([^'"`\s]{4,})['"`]/gi },
-  // API Keys
-  { n:'Generic API Key',          s:'critical', rx:/['"]?(?:api[_-]?key|apiKey|API_KEY|x-api-key|APIKEY)['"]?\s*[:=]\s*['"`]([A-Za-z0-9_\-]{16,})['"`]/gi },
-  { n:'Secret Key / Token',       s:'critical', rx:/['"]?(?:secret[_-]?key|secretKey|SECRET_KEY|secret_token|SECRET_TOKEN)['"]?\s*[:=]\s*['"`]([^'"`\s]{8,})['"`]/gi },
-  { n:'Access Token',             s:'critical', rx:/['"]?(?:access[_-]?token|accessToken|ACCESS_TOKEN)['"]?\s*[:=]\s*['"`]([^'"`\s]{12,})['"`]/gi },
-  { n:'Auth / Bearer Token',      s:'critical', rx:/['"]?(?:auth[_-]?token|authToken|AUTH_TOKEN)['"]?\s*[:=]\s*['"`]([A-Za-z0-9._\-]{20,})['"`]/gi },
-  { n:'Bearer in Header',         s:'critical', rx:/[Bb]earer\s+([A-Za-z0-9._\-]{20,})/g },
+  // ── React / Next / Vue env vars ─────────────────────────
+  // BROAD catch-all: any REACT_APP_* with a value (handles minified bundles where key:value appears)
+  { n:'React Env Var (Exposed)',   s:'high',     rx:/['"]?(REACT_APP_[A-Z0-9_]+)['"]?\s*[,:=]\s*['"`]([^'"`\n\r\s]{4,})['"`]/gi },
+  // Specific enc/dec pattern - more permissive version
+  { n:'React Enc/Dec Secret Key',  s:'critical', rx:/REACT_APP_(?:ENC|ENCRYPT(?:ION)?)[A-Z_0-9]*(?:DEC|DECRYPT(?:ION)?)?[A-Z_0-9]*(?:SECRET)?[A-Z_0-9]*KEY[A-Z_0-9]*['"]?\s*[,:=]\s*['"`]([^'"`\n\r\s]{6,})['"`]/gi },
+  // process.env.REACT_APP_* with fallback value
+  { n:'React App Env Variable',    s:'high',     rx:/process\.env\.REACT_APP_([A-Z_]+)\s*\|\|\s*['"`]([^'"`\s]{4,})['"`]/gi },
+  // REACT_APP_ env hardcoded as key=value or key:value
+  { n:'React Env Hardcoded',       s:'high',     rx:/REACT_APP_[A-Z_0-9]+\s*[:=]\s*['"`]([^'"`\s]{4,})['"`]/gi },
+  { n:'Next.js Public Env',        s:'high',     rx:/NEXT_PUBLIC_[A-Z_0-9]+\s*[:=,]\s*['"`]([^'"`\s]{4,})['"`]/gi },
+  { n:'Vue App Env Variable',      s:'high',     rx:/VUE_APP_[A-Z_0-9]+\s*[:=,]\s*['"`]([^'"`\s]{4,})['"`]/gi },
+  { n:'Vite Env Variable',         s:'high',     rx:/VITE_[A-Z_0-9]+\s*[:=,]\s*['"`]([^'"`\s]{4,})['"`]/gi },
+  // Webpack DefinePlugin inlined env vars: process.env.KEY → "value" (after bundling)
+  { n:'Webpack Inlined Env',       s:'high',     rx:/['"]([A-Z][A-Z0-9_]{4,}(?:KEY|SECRET|TOKEN|PASSWORD|API|AUTH)[A-Z0-9_]*)['"]:\s*['"`]([^'"`\n\r\s]{4,})['"`]/gi },
+
+  // ── API Keys ─────────────────────────────────────────────
+  { n:'Generic API Key',           s:'critical', rx:/['"]?(?:api[_-]?key|apiKey|API_KEY|x-api-key|APIKEY)['"]?\s*[:=,]\s*['"`]([A-Za-z0-9_\-]{16,})['"`]/gi },
+  { n:'Secret Key / Token',        s:'critical', rx:/['"]?(?:secret[_-]?key|secretKey|SECRET_KEY|secret_token|SECRET_TOKEN)['"]?\s*[:=,]\s*['"`]([^'"`\s]{8,})['"`]/gi },
+  { n:'Access Token',              s:'critical', rx:/['"]?(?:access[_-]?token|accessToken|ACCESS_TOKEN)['"]?\s*[:=,]\s*['"`]([^'"`\s]{12,})['"`]/gi },
+  { n:'Auth / Bearer Token',       s:'critical', rx:/['"]?(?:auth[_-]?token|authToken|AUTH_TOKEN)['"]?\s*[:=,]\s*['"`]([A-Za-z0-9._\-]{20,})['"`]/gi },
+  { n:'Bearer in Header',          s:'critical', rx:/[Bb]earer\s+([A-Za-z0-9._\-]{20,})/g },
   // AWS
-  { n:'AWS Access Key ID',        s:'critical', rx:/AKIA[0-9A-Z]{16}/g },
-  { n:'AWS Secret Access Key',    s:'critical', rx:/['"]?(?:aws[_-]?secret(?:[_-]?access)?[_-]?key)['"]?\s*[:=]\s*['"`]([A-Za-z0-9+\/]{40})['"`]/gi },
-  { n:'AWS Session Token',        s:'critical', rx:/AQo[A-Za-z0-9+\/]{50,}/g },
+  { n:'AWS Access Key ID',         s:'critical', rx:/AKIA[0-9A-Z]{16}/g },
+  { n:'AWS Secret Access Key',     s:'critical', rx:/['"]?(?:aws[_-]?secret(?:[_-]?access)?[_-]?key)['"]?\s*[:=,]\s*['"`]([A-Za-z0-9+\/]{40})['"`]/gi },
+  { n:'AWS Session Token',         s:'critical', rx:/AQo[A-Za-z0-9+\/]{50,}/g },
   // Auth
-  { n:'Password (Hardcoded)',     s:'critical', rx:/['"]?(?:password|passwd|pwd|pass)['"]?\s*[:=]\s*['"`]([^'"`\s]{6,})['"`]/gi },
-  { n:'Private Key (PEM)',        s:'critical', rx:/-----BEGIN\s(?:RSA\s|EC\s|OPENSSH\s|DSA\s)?PRIVATE KEY-----/g },
+  { n:'Password (Hardcoded)',      s:'critical', rx:/['"]?(?:password|passwd|pwd|pass)['"]?\s*[:=,]\s*['"`]([^'"`\s]{6,})['"`]/gi },
+  { n:'Private Key (PEM)',         s:'critical', rx:/-----BEGIN\s(?:RSA\s|EC\s|OPENSSH\s|DSA\s)?PRIVATE KEY-----/g },
   // JWT
-  { n:'JWT Token',                s:'high',     rx:/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g },
+  { n:'JWT Token',                 s:'high',     rx:/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g },
   // Firebase / Google
-  { n:'Firebase API Key',         s:'high',     rx:/AIza[0-9A-Za-z_\-]{35}/g },
-  { n:'Firebase Config Object',   s:'high',     rx:/firebaseConfig\s*=\s*\{([^}]+)\}/g },
-  { n:'Google OAuth ClientID',    s:'medium',   rx:/[0-9]{8,}-[a-z0-9]+\.apps\.googleusercontent\.com/g },
-  { n:'Google Maps API Key',      s:'critical', rx:/AIza[0-9A-Za-z_-]{35}/g },
+  { n:'Firebase API Key',          s:'high',     rx:/AIza[0-9A-Za-z_\-]{35}/g },
+  { n:'Firebase Config Object',    s:'high',     rx:/firebaseConfig\s*=\s*\{([^}]+)\}/g },
+  { n:'Google OAuth ClientID',     s:'medium',   rx:/[0-9]{8,}-[a-z0-9]+\.apps\.googleusercontent\.com/g },
+  { n:'Google Maps API Key',       s:'critical', rx:/AIza[0-9A-Za-z_-]{35}/g },
   // Stripe
-  { n:'Stripe Live Key',          s:'critical', rx:/(?:sk|pk|rk)_live_[0-9A-Za-z]{24,}/g },
-  { n:'Stripe Test Key',          s:'medium',   rx:/(?:sk|pk|rk)_test_[0-9A-Za-z]{24,}/g },
-  { n:'Stripe Webhook Secret',    s:'critical', rx:/whsec_[0-9A-Za-z]{32,}/g },
+  { n:'Stripe Live Key',           s:'critical', rx:/(?:sk|pk|rk)_live_[0-9A-Za-z]{24,}/g },
+  { n:'Stripe Test Key',           s:'medium',   rx:/(?:sk|pk|rk)_test_[0-9A-Za-z]{24,}/g },
+  { n:'Stripe Webhook Secret',     s:'critical', rx:/whsec_[0-9A-Za-z]{32,}/g },
   // GitHub
-  { n:'GitHub PAT (ghp)',         s:'critical', rx:/ghp_[A-Za-z0-9]{36}/g },
-  { n:'GitHub App Token',         s:'critical', rx:/ghu_[A-Za-z0-9]{36}/g },
-  { n:'GitHub Fine-grained PAT',  s:'critical', rx:/github_pat_[A-Za-z0-9_]{82}/g },
+  { n:'GitHub PAT (ghp)',          s:'critical', rx:/ghp_[A-Za-z0-9]{36}/g },
+  { n:'GitHub App Token',          s:'critical', rx:/ghu_[A-Za-z0-9]{36}/g },
+  { n:'GitHub Fine-grained PAT',   s:'critical', rx:/github_pat_[A-Za-z0-9_]{82}/g },
   // Communication APIs
-  { n:'SendGrid API Key',         s:'critical', rx:/SG\.[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43}/g },
-  { n:'Twilio Account SID',       s:'high',     rx:/AC[a-z0-9]{32}/g },
-  { n:'Twilio Auth Token',        s:'critical', rx:/['"]?(?:twilio[_-]?auth[_-]?token)['"]?\s*[:=]\s*['"`]([a-z0-9]{32})['"`]/gi },
-  { n:'Mailchimp API Key',        s:'high',     rx:/[0-9a-f]{32}-us[0-9]{1,2}/g },
-  { n:'Mailgun API Key',          s:'critical', rx:/key-[0-9a-zA-Z]{32}/g },
-  { n:'Slack Bot Token',          s:'critical', rx:/xoxb-[0-9]+-[0-9A-Za-z\-]+/g },
-  { n:'Slack User Token',         s:'critical', rx:/xoxp-[0-9]+-[0-9A-Za-z\-]+/g },
-  { n:'Slack Webhook URL',        s:'high',     rx:/https:\/\/hooks\.slack\.com\/services\/T[A-Z0-9]{8,}\/B[A-Z0-9]{8,}\/[A-Za-z0-9]+/g },
+  { n:'SendGrid API Key',          s:'critical', rx:/SG\.[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43}/g },
+  { n:'Twilio Account SID',        s:'high',     rx:/AC[a-z0-9]{32}/g },
+  { n:'Twilio Auth Token',         s:'critical', rx:/['"]?(?:twilio[_-]?auth[_-]?token)['"]?\s*[:=,]\s*['"`]([a-z0-9]{32})['"`]/gi },
+  { n:'Mailchimp API Key',         s:'high',     rx:/[0-9a-f]{32}-us[0-9]{1,2}/g },
+  { n:'Mailgun API Key',           s:'critical', rx:/key-[0-9a-zA-Z]{32}/g },
+  { n:'Slack Bot Token',           s:'critical', rx:/xoxb-[0-9]+-[0-9A-Za-z\-]+/g },
+  { n:'Slack User Token',          s:'critical', rx:/xoxp-[0-9]+-[0-9A-Za-z\-]+/g },
+  { n:'Slack Webhook URL',         s:'high',     rx:/https:\/\/hooks\.slack\.com\/services\/T[A-Z0-9]{8,}\/B[A-Z0-9]{8,}\/[A-Za-z0-9]+/g },
   // Payment / Finance
-  { n:'PayPal Client ID',         s:'medium',   rx:/['"]?(?:paypal[_-]?client[_-]?id|PAYPAL_CLIENT)['"]?\s*[:=]\s*['"`]([A-Za-z0-9_-]{40,})['"`]/gi },
-  { n:'Square Access Token',      s:'critical', rx:/EAAAE[A-Za-z0-9_-]{40,}/g },
+  { n:'PayPal Client ID',          s:'medium',   rx:/['"]?(?:paypal[_-]?client[_-]?id|PAYPAL_CLIENT)['"]?\s*[:=,]\s*['"`]([A-Za-z0-9_-]{40,})['"`]/gi },
+  { n:'Square Access Token',       s:'critical', rx:/EAAAE[A-Za-z0-9_-]{40,}/g },
   // Database
-  { n:'Database URL (conn str)',  s:'critical', rx:/['"`](?:mongodb(?:\+srv)?|postgresql|postgres|mysql|redis|mssql|cassandra|couchdb):\/\/[^\s'"`]{8,}['"`]/gi },
-  { n:'Connection String',        s:'critical', rx:/['"]?(?:connectionString|connection_string|DATABASE_URL|DB_URI|MONGODB_URI|POSTGRES_URL|REDIS_URL)['"]?\s*[:=]\s*['"`]([^'"`\s]{12,})['"`]/gi },
+  { n:'Database URL (conn str)',   s:'critical', rx:/['"`](?:mongodb(?:\+srv)?|postgresql|postgres|mysql|redis|mssql|cassandra|couchdb):\/\/[^\s'"`]{8,}['"`]/gi },
+  { n:'Connection String',         s:'critical', rx:/['"]?(?:connectionString|connection_string|DATABASE_URL|DB_URI|MONGODB_URI|POSTGRES_URL|REDIS_URL)['"]?\s*[:=,]\s*['"`]([^'"`\s]{12,})['"`]/gi },
   // Encryption
-  { n:'Encryption / IV / Cipher Key', s:'critical', rx:/['"]?(?:encryptionKey|encryption_key|enc_key|decryptionKey|ivKey|IV_KEY|AES_KEY|CIPHER_KEY|CRYPTO_KEY|HASH_SALT|SALT_KEY|APP_SECRET|JWT_SECRET|SESSION_SECRET|COOKIE_SECRET)['"]?\s*[:=]\s*['"`]([^'"`\s]{8,})['"`]/gi },
+  { n:'Encryption / IV / Cipher Key', s:'critical', rx:/['"]?(?:encryptionKey|encryption_key|enc_key|decryptionKey|ivKey|IV_KEY|AES_KEY|CIPHER_KEY|CRYPTO_KEY|HASH_SALT|SALT_KEY|APP_SECRET|JWT_SECRET|SESSION_SECRET|COOKIE_SECRET|ENC_DEC_SECRET|ENC_SECRET|DEC_SECRET)['"]?\s*[:=,]\s*['"`]([^'"`\s]{8,})['"`]/gi },
   // Cloud
-  { n:'Azure SAS Token',          s:'critical', rx:/(?:sv|se|sp|spr|sig)=[A-Za-z0-9%+\/=]+&sig=[A-Za-z0-9+\/=]{20,}/gi },
-  { n:'Azure Connection String',  s:'critical', rx:/DefaultEndpointsProtocol=https;AccountName=[^;]+;AccountKey=[^;]+/gi },
-  { n:'GCP Service Account Key',  s:'critical', rx:/private_key_id.*"[0-9a-f]{40}"/gi },
+  { n:'Azure SAS Token',           s:'critical', rx:/(?:sv|se|sp|spr|sig)=[A-Za-z0-9%+\/=]+&sig=[A-Za-z0-9+\/=]{20,}/gi },
+  { n:'Azure Connection String',   s:'critical', rx:/DefaultEndpointsProtocol=https;AccountName=[^;]+;AccountKey=[^;]+/gi },
+  { n:'GCP Service Account Key',   s:'critical', rx:/private_key_id.*"[0-9a-f]{40}"/gi },
   // Infrastructure
-  { n:'Hardcoded Localhost URL',  s:'medium',   rx:/['"`](https?:\/\/(?:localhost|127\.0\.0\.1|0\.0\.0\.0)(?::\d+)?[^'"`\s]*)['"`]/gi },
-  { n:'Internal IP URL',          s:'medium',   rx:/['"`](https?:\/\/(?:10\.\d+\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+)(?::\d+)?[^'"`\s]*)['"`]/gi },
-  { n:'Hardcoded IP Address',     s:'medium',   rx:/['"`](\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?::\d+)?)['"`]/g },
-  { n:'SSH Private Key Pattern',  s:'critical', rx:/(?:ssh-rsa|ecdsa-sha2-nistp256|ssh-ed25519)\s+AAAA[0-9A-Za-z+\/=]{40,}/g },
+  { n:'Hardcoded Localhost URL',   s:'medium',   rx:/['"`](https?:\/\/(?:localhost|127\.0\.0\.1|0\.0\.0\.0)(?::\d+)?[^'"`\s]*)['"`]/gi },
+  { n:'Internal IP URL',           s:'medium',   rx:/['"`](https?:\/\/(?:10\.\d+\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+)(?::\d+)?[^'"`\s]*)['"`]/gi },
+  { n:'Hardcoded IP Address',      s:'medium',   rx:/['"`](\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?::\d+)?)['"`]/g },
+  { n:'SSH Private Key Pattern',   s:'critical', rx:/(?:ssh-rsa|ecdsa-sha2-nistp256|ssh-ed25519)\s+AAAA[0-9A-Za-z+\/=]{40,}/g },
   // App secrets
-  { n:'Hardcoded Email Address',  s:'low',      rx:/['"`][a-zA-Z0-9._%+\-]{2,}@[a-zA-Z0-9.\-]{2,}\.[a-zA-Z]{2,}['"`]/g },
-  { n:'Password in Comment',      s:'high',     rx:/\/\/.*(?:password|passwd|secret|token|key).*[:=]\s*\S{6,}/gi },
-  { n:'TODO/FIXME Credential',    s:'medium',   rx:/(?:TODO|FIXME|HACK|XXX).*(?:password|secret|token|key|credential)/gi },
-  { n:'console.log Credential',   s:'medium',   rx:/console\.(?:log|warn|error)\s*\([^)]*(?:password|token|secret|key|credential)[^)]*\)/gi },
-  { n:'eval() Usage',             s:'high',     rx:/\beval\s*\([^)]{4,}\)/g },
-  { n:'document.write() Usage',   s:'medium',   rx:/document\.write\s*\(/g },
-  { n:'innerHTML Assignment',     s:'medium',   rx:/\.innerHTML\s*=\s*(?!['"`]<)/g },
-  { n:'postMessage Any Origin',   s:'medium',   rx:/\.postMessage\s*\([^,]+,\s*['"`]\*['"`]/g },
-  { n:'localStorage Sensitive',   s:'medium',   rx:/localStorage\.setItem\s*\(\s*['"`][^'"`]*(?:token|password|secret|key)[^'"`]*['"`]/gi },
-  { n:'Hardcoded RSA/EC Key',     s:'critical', rx:/-----BEGIN (?:RSA|EC|PRIVATE|PUBLIC) KEY-----[\s\S]{10,100}-----END/g },
+  { n:'Hardcoded Email Address',   s:'low',      rx:/['"`][a-zA-Z0-9._%+\-]{2,}@[a-zA-Z0-9.\-]{2,}\.[a-zA-Z]{2,}['"`]/g },
+  { n:'Password in Comment',       s:'high',     rx:/\/\/.*(?:password|passwd|secret|token|key).*[:=]\s*\S{6,}/gi },
+  { n:'TODO/FIXME Credential',     s:'medium',   rx:/(?:TODO|FIXME|HACK|XXX).*(?:password|secret|token|key|credential)/gi },
+  { n:'console.log Credential',    s:'medium',   rx:/console\.(?:log|warn|error)\s*\([^)]*(?:password|token|secret|key|credential)[^)]*\)/gi },
+  { n:'eval() Usage',              s:'high',     rx:/\beval\s*\([^)]{4,}\)/g },
+  { n:'document.write() Usage',    s:'medium',   rx:/document\.write\s*\(/g },
+  { n:'innerHTML Assignment',      s:'medium',   rx:/\.innerHTML\s*=\s*(?!['"`]<)/g },
+  { n:'postMessage Any Origin',    s:'medium',   rx:/\.postMessage\s*\([^,]+,\s*['"`]\*['"`]/g },
+  { n:'localStorage Sensitive',    s:'medium',   rx:/localStorage\.setItem\s*\(\s*['"`][^'"`]*(?:token|password|secret|key)[^'"`]*['"`]/gi },
+  { n:'Hardcoded RSA/EC Key',      s:'critical', rx:/-----BEGIN (?:RSA|EC|PRIVATE|PUBLIC) KEY-----[\s\S]{10,100}-----END/g },
 ];
 
 // ═══════════════════════════════════════════════════════════
@@ -609,7 +661,10 @@ const EP_PATS = [
   { rx:/apiUrl\s*[:=]\s*[`'"]([^`'"]{4,})[`'"]/gi,          m:'BASE' },
   { rx:/API_URL\s*[:=]\s*[`'"]([^`'"]{4,})[`'"]/gi,         m:'BASE' },
   { rx:/API_BASE(?:_URL)?\s*[:=]\s*[`'"]([^`'"]{4,})[`'"]/gi,m:'BASE'},
+  // Broad API path pattern — catches REST paths with multiple segments
   { rx:/['"`](\/(?:api|v\d+|graphql|rest|gql|rpc|service|endpoint|auth|oauth|login|signin|logout|register|signup|user|users|account|admin|dashboard|settings|profile|upload|download|search|query|webhook|callback|redirect|token|refresh)[\/a-zA-Z0-9_\-.*?=&%{}:@!]*)[`'"]/gi, m:'ANY' },
+  // Catch any path string with 2+ segments starting with /
+  { rx:/['"`](\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_\-\/.?=&%{}:@!]{2,})[`'"]/gi, m:'ANY' },
   { rx:/route\s*\(\s*['"`]([^'"`]{4,})['"`]/gi,             m:'ANY'  },
   { rx:/router\.(?:get|post|put|delete|patch|use)\s*\(\s*['"`]([^'"`]{4,})['"`]/gi, m:'ANY' },
   { rx:/app\.(?:get|post|put|delete|patch|use)\s*\(\s*['"`]([^'"`]{4,})['"`]/gi,    m:'ANY' },
@@ -618,6 +673,10 @@ const EP_PATS = [
   { rx:/path\s*[:=]\s*[`'"]([\/][^`'"]{2,})[`'"]/gi,        m:'ANY'  },
   { rx:/href\s*[:=]\s*[`'"]([\/][^`'"]{2,})[`'"]/gi,        m:'GET'  },
   { rx:/action\s*[:=]\s*[`'"]([\/][^`'"]{2,})[`'"]/gi,      m:'POST' },
+  // XMLHttpRequest patterns
+  { rx:/\.open\s*\(\s*['"](?:GET|POST|PUT|DELETE|PATCH)['"]\s*,\s*['"`]([^'"`\n]{4,})['"`]/gi, m:'ANY' },
+  // URL concatenation (e.g. baseUrl + "/api/users")
+  { rx:/\+\s*['"`](\/[a-zA-Z][a-zA-Z0-9_\-\/]{2,})['"`]/gi, m:'ANY' },
 ];
 
 // ═══════════════════════════════════════════════════════════
@@ -855,11 +914,47 @@ function clearAll(){
 }
 
 // ═══════════════════════════════════════════════════════════
+// HEADER ENRICHMENT — try corsproxy.io which forwards real headers
+// ═══════════════════════════════════════════════════════════
+async function enrichHeaders(url, existing) {
+  // corsproxy.io acts as a transparent proxy and forwards most target headers
+  try {
+    const ctrl = new AbortController();
+    const tid = setTimeout(()=>ctrl.abort(), 10000);
+    const resp = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`, {signal: ctrl.signal});
+    clearTimeout(tid);
+    if (resp && resp.ok) {
+      const enriched = {};
+      resp.headers.forEach((v,k)=>{ enriched[k.toLowerCase()]=v; });
+      // Merge: prefer corsproxy headers for security-relevant ones (they pass through target headers)
+      const SEC_HDRS = [
+        'strict-transport-security','content-security-policy','x-frame-options',
+        'x-content-type-options','referrer-policy','permissions-policy',
+        'cross-origin-embedder-policy','cross-origin-opener-policy',
+        'cross-origin-resource-policy','cache-control','x-xss-protection',
+        'clear-site-data','server','x-powered-by','x-aspnet-version',
+        'x-aspnetmvc-version','x-generator','set-cookie',
+        'access-control-allow-origin','access-control-allow-credentials',
+        'access-control-allow-methods'
+      ];
+      SEC_HDRS.forEach(h => {
+        if (enriched[h] !== undefined) existing[h] = enriched[h];
+      });
+    }
+  } catch(e) { /* silently fail — existing headers remain */ }
+}
+
+// ═══════════════════════════════════════════════════════════
 // MULTI-PROXY FETCH — tries strategies in order
 // ═══════════════════════════════════════════════════════════
 async function fetchTarget(url, {timeout=18000, onlyHeaders=false}={}) {
   let lastErr = '';
+  const isInternal = /\b(localhost|127\.|192\.168\.|10\.\d+\.|172\.(1[6-9]|2\d|3[01])\.|\.internal|\.local|dev\.|staging\.|admin-dev\.|test\.)\b/i.test(url);
+
   for (const proxy of PROXIES) {
+    // Skip public proxies for obvious internal URLs — they'll just timeout
+    if (isInternal && proxy.name !== 'Direct') continue;
+
     try {
       const ctrl = new AbortController();
       const tid = setTimeout(()=>ctrl.abort(), timeout);
@@ -870,6 +965,8 @@ async function fetchTarget(url, {timeout=18000, onlyHeaders=false}={}) {
       } catch(e) { clearTimeout(tid); lastErr=e.message; continue; }
 
       if (!resp) { lastErr='No response'; continue; }
+      // Treat 4xx/5xx from proxy itself as failure (not target 404 — those are valid)
+      if (resp.status === 0) { lastErr='Status 0'; continue; }
 
       const ct = resp.headers.get('content-type')||'';
       let body = '';
@@ -878,28 +975,30 @@ async function fetchTarget(url, {timeout=18000, onlyHeaders=false}={}) {
       // Collect response headers from the proxy response
       resp.headers.forEach((v,k)=>{ respHeaders[k.toLowerCase()]=v; });
 
-      // Some proxies return the target response headers in a JSON envelope
       if (!onlyHeaders) {
         try {
           if (ct.includes('application/json')) {
             const j = await resp.clone().json();
-            // allorigins format
+            // allorigins /raw returns plain text, /get returns {contents,status}
             if (j && j.contents !== undefined) {
               body = j.contents || '';
               if (j.status && j.status.content_type) respHeaders['content-type']=j.status.content_type;
+              // allorigins /get exposes http_code
+              if (j.status && j.status.http_code) respHeaders['x-target-status']=String(j.status.http_code);
             }
-            // Our worker might return {headers:{}, body:''}
             else if (j && j.body !== undefined) {
               body = j.body || '';
               if (j.headers) respHeaders = {...respHeaders, ...j.headers};
-            } else {
-              body = JSON.stringify(j);
             }
+            else { body = JSON.stringify(j); }
           } else {
             body = await resp.text();
           }
         } catch(e) { body = ''; }
       }
+
+      // Validate we actually got content (some proxies return 200 with empty body on failure)
+      if (!onlyHeaders && !body && proxy.name !== 'Direct') { lastErr='Empty body'; continue; }
 
       activeProxy = proxy.name;
       $('proxyInfo').classList.add('show');
@@ -911,7 +1010,17 @@ async function fetchTarget(url, {timeout=18000, onlyHeaders=false}={}) {
       continue;
     }
   }
-  return { ok:false, error:'All proxy strategies failed: ' + lastErr };
+
+  // Build a smart error message
+  let errMsg = 'All proxy strategies failed: ' + lastErr;
+  if (isInternal) {
+    errMsg = 'Internal/dev URL detected — public proxies cannot reach it. ' +
+      'Use 📋 PASTE JS CONTENT instead: open the JS file in your browser, copy all, paste there.';
+  } else if (lastErr.includes('Failed to fetch') || lastErr.includes('NetworkError')) {
+    errMsg = 'Network error — target may be down, on a private network, or blocking all proxies. ' +
+      'Try 📋 PASTE JS CONTENT if you can access the file in your browser.';
+  }
+  return { ok:false, error:errMsg };
 }
 
 // Lightweight HEAD-like fetch just to get status code
@@ -962,6 +1071,73 @@ async function callAI(prompt) {
 }
 
 // ═══════════════════════════════════════════════════════════
+// PASTE JS MODE — scan raw JS without any network fetch
+// ═══════════════════════════════════════════════════════════
+function togglePasteMode() {
+  const p = $('pastePanel');
+  p.classList.toggle('show');
+  if (p.classList.contains('show')) {
+    // Pre-fill URL if one is in the URL box
+    const u = $('urlIn').value.trim();
+    if (u && /\.js(\?|$)/i.test(u)) $('pasteUrl').value = u;
+    $('pasteContent').focus();
+  }
+}
+
+async function scanPastedJs() {
+  const raw = $('pasteContent').value.trim();
+  if (!raw || raw.length < 10) {
+    showAlert('Paste some JS content first.', 'err');
+    return;
+  }
+  const jsUrl = $('pasteUrl').value.trim() || 'pasted://manual-input.js';
+
+  clearAlerts();
+  $('sumBar').style.display='none';
+  $('tabBar').style.display='none';
+  G={headers:{},cookies:[],js:[],paths:[],cors:{},content:{},tech:[],robots:null,sitemap:null,cnt:{crit:0,high:0,med:0,ok:0,js:0,ep:0,sec:0,paths:0}};
+
+  $('progWrap').style.display='block';
+  $('progFill').style.width='10%';
+  $('progLbl').textContent='Scanning pasted JS content…';
+
+  showAlert(`📋 Paste mode — scanning ${raw.length.toLocaleString()} characters of JS. No network request made.`, 'info');
+
+  // Scan the pasted JS
+  setProgress(30, 'Deep scanning JS for secrets & endpoints…');
+  G.cnt.js = 1;
+  const result = scanJs(raw, jsUrl);
+  G.js = [result];
+
+  // Check for source map reference in pasted content
+  const smMatch = raw.match(/\/\/[#@]\s*sourceMappingURL=([^\s\n\r]+)/);
+  if (smMatch && !smMatch[1].startsWith('data:')) {
+    showAlert(`⚠ Source map referenced: <code>${esc(smMatch[1])}</code> — check if it's publicly accessible.`, 'warn');
+  }
+
+  setProgress(80, 'Rendering results…');
+  renderJs(G.js);
+
+  // Update counts
+  const totalSec = G.js.reduce((a,f)=>a+(f.secrets||[]).length,0);
+  updateSummary();
+  $('sumBar').style.display='grid';
+  $('tabBar').style.display='flex';
+  if (totalSec>0) { $('tJS').style.display='inline'; $('tJS').textContent=totalSec; }
+
+  setProgress(100, `✔ Paste scan complete — ${totalSec} finding(s) in ${raw.length.toLocaleString()} chars`);
+  showTab('js', document.querySelector('.tab:nth-child(2)'));
+  showAlert(`Paste scan complete! Found ${G.cnt.crit} critical, ${G.cnt.high} high, ${G.cnt.med} medium findings.`,
+    G.cnt.crit>0||G.cnt.high>0 ? 'warn' : 'ok');
+
+  setStatus(`✔ PASTE SCAN COMPLETE — ${jsUrl.slice(0,60)}`);
+  // Auto-activate JS tab
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===1));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  $('panel-js').classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════
 // MAIN SCAN ORCHESTRATOR
 // ═══════════════════════════════════════════════════════════
 async function startScan() {
@@ -981,6 +1157,17 @@ async function startScan() {
         oP=$('oP').checked, oCo=$('oCo').checked, oM=$('oM').checked,
         oR=$('oR').checked, oA=$('oA').checked;
 
+  // ── DETECT DIRECT JS FILE URL ───────────────────────────
+  const isJsUrl = /\.js(\?[^#]*)?$/i.test(url);
+  let originUrl = url;
+  try { originUrl = new URL(url).origin; } catch(e) {}
+  // For direct JS URL: use origin for headers/paths, direct URL for JS scan
+  const headerTarget = isJsUrl ? originUrl : url;
+
+  if (isJsUrl) {
+    showAlert(`📜 <strong>Direct JS File Mode</strong> — Scanning JS file directly for secrets & endpoints. Headers/paths checked against <code>${originUrl}</code>.`, 'info');
+  }
+
   const STEPS=[
     {n:'FETCH',    st:'run'},
     {n:'HEADERS',  st:''},
@@ -997,24 +1184,34 @@ async function startScan() {
   setStatus('SCANNING → '+url);
 
   try {
-    // ── 1. FETCH MAIN PAGE ──────────────────────────────────
-    const main = await fetchTarget(url);
+    // ── 1. FETCH MAIN PAGE (or origin if JS URL) ────────────
+    const main = await fetchTarget(headerTarget);
     if (!main.ok) {
       step(0,'fail');
       setProgress(5,'Fetch failed',STEPS);
-      showAlert(`❌ Could not reach target: ${main.error}<br>Tried ${PROXIES.length} proxy strategies. Check: URL is correct, target is online, not behind VPN-only access.`,'err');
+      const isInternal = /\b(localhost|127\.|192\.168\.|10\.\d+\.|172\.(1[6-9]|2\d|3[01])\.|\.internal|\.local|dev\.|staging\.|admin-dev\.|test\.)\b/i.test(url);
+      const hint = isInternal
+        ? `<br><br>🔒 <strong>This looks like an internal/dev server.</strong> Public proxies can't reach it.<br>→ <strong>Solution:</strong> Click <strong>📋 PASTE JS CONTENT</strong> above — open the JS file in your browser, copy all (Ctrl+A → Ctrl+C), and paste it there for an instant offline scan.`
+        : `<br><br>💡 <strong>Tip:</strong> If you can open this URL in your browser, use <strong>📋 PASTE JS CONTENT</strong> to scan without proxies. Tried ${PROXIES.length} proxy strategies.`;
+      showAlert(`❌ Could not reach target: ${main.error}${hint}`, 'err');
       $('scanBtn').disabled=false;
+      // Auto-open paste panel for internal URLs
+      if (isInternal && !$('pastePanel').classList.contains('show')) {
+        togglePasteMode();
+        if (/\.js(\?|$)/i.test(url)) $('pasteUrl').value = url;
+      }
       return;
     }
     step(0,'ok'); setProgress(14,'Parsing response…',STEPS);
 
-    // Populate headers (from proxy response + try to get actual target headers)
+    // Populate headers — attempt dedicated header fetch via corsproxy for accuracy
     G.headers = main.headers || {};
-    const body = main.body || '';
+    await enrichHeaders(headerTarget, G.headers);
+    const body = isJsUrl ? '' : (main.body || '');
 
     // ── 2. SECURITY HEADERS ─────────────────────────────────
     step(1,'run'); setProgress(18,'Analyzing security headers…',STEPS);
-    if (oH) renderHeaders(G.headers);
+    if (oH) renderHeaders(G.headers, main.proxyName);
     step(1,'ok');
 
     // ── 3. COOKIES ──────────────────────────────────────────
@@ -1031,22 +1228,22 @@ async function startScan() {
 
     // ── 4. JS RECON ─────────────────────────────────────────
     step(2,'run'); setProgress(22,'Starting JS reconnaissance…',STEPS);
-    if (oJ) await runJsRecon(url, body, STEPS);
+    if (oJ) await runJsRecon(url, body, STEPS, isJsUrl);
     step(2,'ok');
 
     // ── 5. SENSITIVE PATH DISCOVERY ─────────────────────────
     step(3,'run'); setProgress(52,'Discovering sensitive paths…',STEPS);
-    if (oP) await runPathDiscovery(url, STEPS);
+    if (oP) await runPathDiscovery(isJsUrl ? originUrl : url, STEPS);
     step(3,'ok');
 
     // ── 6. CORS TESTING ─────────────────────────────────────
     step(4,'run'); setProgress(74,'Testing CORS configuration…',STEPS);
-    if (oCo) await runCorsTest(url);
+    if (oCo) await runCorsTest(isJsUrl ? originUrl : url);
     step(4,'ok');
 
     // ── 7. CONTENT ANALYSIS ─────────────────────────────────
     step(5,'run'); setProgress(80,'Analyzing page content…',STEPS);
-    if (oM) runContentAnalysis(url, body);
+    if (oM) runContentAnalysis(isJsUrl ? originUrl : url, body);
     step(5,'ok');
 
     // ── 8. TECH FINGERPRINTING ──────────────────────────────
@@ -1054,7 +1251,7 @@ async function startScan() {
 
     // ── 9. ROBOTS / SITEMAP ─────────────────────────────────
     step(6,'run'); setProgress(85,'Fetching robots.txt and sitemap…',STEPS);
-    if (oR) await runRobots(url);
+    if (oR) await runRobots(isJsUrl ? originUrl : url);
     step(6,'ok');
 
     // ── 10. AI ANALYSIS ─────────────────────────────────────
@@ -1086,7 +1283,7 @@ async function startScan() {
 // ═══════════════════════════════════════════════════════════
 // MODULE: SECURITY HEADERS
 // ═══════════════════════════════════════════════════════════
-function renderHeaders(hdrs) {
+function renderHeaders(hdrs, proxyName) {
   const el=$('hR'); $('hE').style.display='none'; el.style.display='block';
 
   // Score
@@ -1104,6 +1301,14 @@ function renderHeaders(hdrs) {
   const gr=sc>=90?'A':sc>=75?'B':sc>=55?'C':sc>=35?'D':'F';
 
   let html=`<div class="shdr"><span class="ico">⚔</span><h2>SECURITY HEADERS ANALYSIS</h2><span class="sc ${gr}">${gr} (${sc}/100)</span></div>`;
+
+  // Proxy accuracy note
+  const isAllOrigins = proxyName && proxyName.toLowerCase().includes('allorigins');
+  const proxyNote = isAllOrigins
+    ? `⚠ <strong>Header accuracy notice:</strong> AllOrigins proxy does not forward target response headers. The scanner re-fetched via corsproxy.io for better accuracy, but some headers may still be missing. For 100% accurate results, run this tool from a browser extension or server-side.`
+    : `ℹ Headers retrieved via <strong>${esc(proxyName||'proxy')}</strong> + corsproxy.io enrichment. Verify critical missing headers manually (e.g., curl -I ${Object.keys(hdrs).length ? 'target' : ''}).`;
+  html += `<div class="note" style="border-color:var(--cyan);color:var(--text2);margin-bottom:14px">${proxyNote}</div>`;
+
 
   // Security headers
   html+=`<div class="sec-hdr">Required & Recommended Security Headers</div>`;
@@ -1163,10 +1368,95 @@ function renderHeaders(hdrs) {
 // ═══════════════════════════════════════════════════════════
 // MODULE: JS RECONNAISSANCE
 // ═══════════════════════════════════════════════════════════
-async function runJsRecon(baseUrl, html, STEPS) {
+async function runJsRecon(baseUrl, html, STEPS, directJsMode=false) {
   const origin = (()=>{ try{return new URL(baseUrl).origin}catch(e){return baseUrl} })();
 
-  // Extract script URLs
+  // ── DIRECT JS FILE MODE ──────────────────────────────────
+  // When user pastes a direct .js URL (e.g. main.7094ccd1.js),
+  // the body is raw JavaScript — not HTML with <script> tags.
+  // We must fetch and scan it directly.
+  if (directJsMode) {
+    const el=$('jR'); $('jE').style.display='none'; el.style.display='block';
+    el.innerHTML=`<div class="shdr"><span class="ico">📜</span><h2>JS DEEP SCAN — DIRECT FILE MODE</h2></div><div style="color:var(--text2);font-family:'Share Tech Mono',monospace;font-size:11px"><span class="spin"></span>Fetching JS file for deep secret extraction…</div>`;
+
+    setProgress(24,'Fetching target JS file…',STEPS);
+    const r = await fetchTarget(baseUrl, {timeout:20000});
+    if (!r.ok || !r.body) {
+      el.innerHTML+=`<div class="note" style="border-color:var(--red);color:var(--red)">Failed to fetch JS file: ${esc(r.error||'Unknown error')}</div>`;
+      return;
+    }
+
+    const jsCode = r.body;
+    G.cnt.js = 1;
+    setProgress(34,'Scanning JS file for secrets and endpoints…',STEPS);
+
+    const scResult = scanJs(jsCode, baseUrl);
+    const results = [scResult];
+
+    // Check for embedded source map reference in the JS content
+    const smMatch = jsCode.match(/\/\/[#@]\s*sourceMappingURL=([^\s\n\r]+)/);
+    if (smMatch) {
+      let smUrl = smMatch[1].trim();
+      if (!smUrl.startsWith('http') && !smUrl.startsWith('data:')) {
+        // Resolve relative to JS file directory
+        const jsDir = baseUrl.replace(/\/[^/]+$/, '/');
+        smUrl = jsDir + smUrl;
+      }
+      if (!smUrl.startsWith('data:')) {
+        setProgress(44,'Checking for exposed source map…',STEPS);
+        const smR = await fetchStatus(smUrl, 6000);
+        if (smR.ok && smR.status === 200) {
+          results.push({url: smUrl, secrets:[], endpoints:[], sevCount:{}, size:0,
+            note:'⚠ Source map EXPOSED — full original source code is recoverable! Use source-map tool to reconstruct.'});
+          showAlert('🔴 CRITICAL: Source map exposed at ' + smUrl, 'warn');
+        }
+      }
+    }
+
+    // Also scan for references to other JS chunks in the bundle
+    const chunkRx = /['"`]((?:\/static\/js\/|\.\/)[^'"`\s]{3,}\.js(?:\?[^'"`\s]*)?)['"`]/gi;
+    let cm; const chunkUrls = new Set();
+    while ((cm = chunkRx.exec(jsCode)) !== null) {
+      let cu = cm[1];
+      if (!cu.startsWith('http')) cu = origin + (cu.startsWith('/') ? cu : '/static/js/' + cu);
+      if (cu !== baseUrl) chunkUrls.add(cu);
+    }
+
+    if (chunkUrls.size > 0) {
+      setProgress(46,'Scanning referenced JS chunks…',STEPS);
+      const chunks = [...chunkUrls].slice(0, 8); // limit to 8 chunks
+      for (let i = 0; i < chunks.length; i++) {
+        setProgress(46 + Math.floor((i/chunks.length)*4), `Chunk [${i+1}/${chunks.length}]: ${chunks[i].split('/').pop().slice(0,30)}…`);
+        const cr = await fetchTarget(chunks[i], {timeout:8000});
+        if (cr.ok && cr.body) {
+          results.push(scanJs(cr.body, chunks[i]));
+          G.cnt.js++;
+        }
+      }
+    }
+
+    G.js = results;
+    renderJs(results);
+    return;
+  }
+
+  // ── HTML-BASED JS RECON (normal mode) ───────────────────
+  // Also detect if the body itself IS JavaScript (Content-Type or heuristic)
+  const looksLikeJs = html && !html.trimStart().startsWith('<') &&
+    (/<\/script>/.test(html) === false) &&
+    (/\bfunction\b|\bconst\b|\bvar\b|\bimport\b|\bexport\b/.test(html.slice(0,500)));
+
+  if (looksLikeJs) {
+    // Body is raw JS — scan it directly (happens when proxy returned JS instead of HTML)
+    const el=$('jR'); $('jE').style.display='none'; el.style.display='block';
+    const scResult = scanJs(html, baseUrl);
+    G.cnt.js = 1;
+    G.js = [scResult];
+    renderJs(G.js);
+    return;
+  }
+
+  // Extract script URLs from HTML
   const scriptUrls=new Set();
   const rx1=/<script[^>]+src\s*=\s*['"]([^'"]{3,})['"]/gi;
   let m;
@@ -1248,18 +1538,29 @@ function scanJs(code, url) {
       let m;
       let tries=0;
       while((m=rx.exec(code))!==null&&tries++<50){
-        const raw=(m[1]||m[0]).trim().replace(/^['"`]/,'').replace(/['"`]$/,'');
+        // Support 2-capture-group patterns: m[1]=key name, m[2]=value
+        // For single-capture patterns: m[1]=value, m[0]=full match
+        let raw, displayType=pat.n;
+        if(m[2] !== undefined) {
+          // Two capture groups: key name + value
+          raw = m[2].trim().replace(/^['"`]/,'').replace(/['"`]$/,'');
+          displayType = pat.n + ': ' + m[1]; // e.g. "React Env Var (Exposed): REACT_APP_ENC_DEC_SECRET_KEY"
+        } else {
+          raw=(m[1]||m[0]).trim().replace(/^['"`]/,'').replace(/['"`]$/,'');
+        }
         if(raw.length<3||raw.length>500) continue;
         if(/^(true|false|null|undefined|NaN|Infinity|\d+)$/.test(raw)) continue;
         if(/^(this\.|self\.|window\.|document\.|undefined|function)/.test(raw)) continue;
         // Skip common false positives
         if(/^\$\{/.test(raw)) continue;
-        const key=pat.n+'::'+raw.slice(0,40);
+        // Skip if value looks like a variable name or template placeholder
+        if(/^[a-z][a-zA-Z0-9_]*$/.test(raw) && raw.length < 8) continue;
+        const key=displayType+'::'+raw.slice(0,40);
         if(seen.has(key)) continue;
         seen.add(key);
         // Context for pentesters
         const ctx=code.slice(Math.max(0,m.index-60),m.index+m[0].length+60).replace(/\n/g,' ').trim();
-        secrets.push({type:pat.n, sev:pat.s, raw, ctx:ctx.slice(0,150)});
+        secrets.push({type:displayType, sev:pat.s, raw, ctx:ctx.slice(0,200)});
         sevCount[pat.s]=(sevCount[pat.s]||0)+1;
         G.cnt.sec++;
       }
