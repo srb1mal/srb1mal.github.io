@@ -120,20 +120,145 @@ section{margin-bottom:82px}
 /* CARD */
 .card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rad);padding:26px 30px;backdrop-filter:blur(16px);position:relative;overflow:hidden;transition:border-color .3s,box-shadow .3s;will-change:transform}
 .card::before{content:'';position:absolute;top:0;left:0;width:26px;height:26px;background:conic-gradient(from 0deg,var(--r),var(--r2),var(--r));opacity:.11;border-radius:var(--rad) 0 0 0;filter:blur(1px)}
-.card::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at var(--mx,50%) var(--my,50%),rgba(255,23,68,.05) 0%,transparent 62%);pointer-events:none;opacity:0;transition:opacity .3s}
-.card:hover::after{opacity:1}
+.card:hover{border-color:var(--bhi);box-shadow:0 0 30px var(--rlo),0 14px 42px rgba(0,0,0,.5)}
 
-/* Shared mouse-tracking glow — all surface elements */
-.tlc::after,.ec::after,.soc::after,.ii::after,.pcard::after,.hob::after,.cf-front::after,.cf-back::after{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse at var(--mx,50%) var(--my,50%),rgba(255,23,68,.09) 0%,transparent 58%);
-  pointer-events:none;opacity:0;transition:opacity .35s;border-radius:inherit;
+/* ── FX INJECTION LAYER (holographic hover system) ── */
+.card-fx{position:absolute;inset:0;pointer-events:none;border-radius:inherit;overflow:hidden}
+
+/* Holographic rainbow foil — rotates with cursor angle */
+.card-fx-holo{
+  position:absolute;inset:0;border-radius:inherit;
+  background:conic-gradient(from var(--angle,0deg) at var(--mx,50%) var(--my,50%),
+    transparent 0deg,
+    rgba(255,23,68,.18) 35deg,rgba(255,100,60,.1) 75deg,
+    rgba(255,200,60,.08) 120deg,transparent 165deg,
+    rgba(60,160,255,.05) 220deg,rgba(180,60,255,.07) 270deg,
+    transparent 320deg,transparent 360deg);
+  opacity:0;transition:opacity .5s;mix-blend-mode:screen;
 }
-.tlc:hover::after,.ec:hover::after,.soc:hover::after,.ii:hover::after,.pcard:hover::after,.hob:hover::after{opacity:1}
-.cf-wrap:hover .cf-front::after,.cf-wrap:hover .cf-back::after{opacity:1}
-/* st hero stats glow */
-.st::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at var(--mx,50%) var(--my,50%),rgba(255,23,68,.10) 0%,transparent 62%);pointer-events:none;opacity:0;transition:opacity .3s}
-.st:hover::after{opacity:1}
+.card-fx-holo.vis{opacity:1}
+
+/* Specular highlight — sharp bright spot under cursor */
+.card-fx-spec{
+  position:absolute;inset:0;border-radius:inherit;
+  background:radial-gradient(circle 55px at var(--mx,50%) var(--my,50%),
+    rgba(255,255,255,.11) 0%,rgba(255,255,255,.04) 35%,transparent 70%);
+  opacity:0;transition:opacity .2s;
+}
+.card-fx-spec.vis{opacity:1}
+
+/* Edge proximity glow — nearest border lights up */
+.card-fx-edge{
+  position:absolute;inset:-1px;border-radius:inherit;
+  background:
+    radial-gradient(ellipse 50px 200% at 0% var(--my,50%),rgba(255,23,68,.28) 0%,transparent 100%),
+    radial-gradient(ellipse 50px 200% at 100% var(--my,50%),rgba(255,23,68,.28) 0%,transparent 100%),
+    radial-gradient(ellipse 200% 50px at var(--mx,50%) 0%,rgba(255,23,68,.28) 0%,transparent 100%),
+    radial-gradient(ellipse 200% 50px at var(--mx,50%) 100%,rgba(255,23,68,.28) 0%,transparent 100%);
+  opacity:0;transition:opacity .3s;mix-blend-mode:screen;
+}
+.card-fx-edge.vis{opacity:1}
+
+/* Depth parallax inner layer */
+.card-fx-depth{
+  position:absolute;inset:0;border-radius:inherit;
+  background:radial-gradient(ellipse 80% 80% at var(--mx,50%) var(--my,50%),
+    rgba(255,23,68,.04) 0%,transparent 70%);
+  opacity:0;transition:opacity .4s;
+}
+.card-fx-depth.vis{opacity:1}
+
+/* ── ELECTRIC CIRCUIT — Skills & Arsenal ── */
+/* Corner bracket connectors */
+.card-fx-corners{
+  position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  opacity:0;transition:opacity .35s;
+  --cc:rgba(0,229,255,.75);
+  background:
+    linear-gradient(var(--cc),var(--cc)) top left / 14px 1.5px no-repeat,
+    linear-gradient(var(--cc),var(--cc)) top left / 1.5px 14px no-repeat,
+    linear-gradient(var(--cc),var(--cc)) top right / 14px 1.5px no-repeat,
+    linear-gradient(var(--cc),var(--cc)) top right / 1.5px 14px no-repeat,
+    linear-gradient(var(--cc),var(--cc)) bottom left / 14px 1.5px no-repeat,
+    linear-gradient(var(--cc),var(--cc)) bottom left / 1.5px 14px no-repeat,
+    linear-gradient(var(--cc),var(--cc)) bottom right / 14px 1.5px no-repeat,
+    linear-gradient(var(--cc),var(--cc)) bottom right / 1.5px 14px no-repeat;
+}
+.card-fx-corners.vis{opacity:1;animation:cpulse 1.4s ease-in-out infinite}
+@keyframes cpulse{0%,100%{opacity:.55}50%{opacity:1}}
+
+/* Horizontal laser scan beam */
+.card-fx-scan{
+  position:absolute;left:0;right:0;height:1px;
+  top:var(--my,50%);
+  background:linear-gradient(90deg,transparent 0%,rgba(0,229,255,.0) 15%,rgba(0,229,255,.7) 50%,rgba(0,229,255,.0) 85%,transparent 100%);
+  box-shadow:0 0 8px 1px rgba(0,229,255,.35);
+  opacity:0;transition:opacity .2s;pointer-events:none;
+}
+.card-fx-scan.vis{opacity:1}
+
+/* Cyan diffuse glow */
+.card-fx-cglow{
+  position:absolute;inset:0;border-radius:inherit;
+  background:radial-gradient(ellipse at var(--mx,50%) var(--my,50%),rgba(0,229,255,.09) 0%,transparent 62%);
+  opacity:0;transition:opacity .3s;
+}
+.card-fx-cglow.vis{opacity:1}
+
+/* Rotating race border */
+@keyframes race{from{--race-angle:0deg}to{--race-angle:360deg}}
+@property --race-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
+.card-fx-race{
+  position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;
+  background:conic-gradient(from var(--race-angle,0deg),
+    transparent 0deg,transparent 300deg,
+    rgba(0,229,255,.5) 340deg,rgba(0,229,255,.8) 355deg,rgba(0,229,255,.0) 360deg);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  mask-composite:exclude;padding:1.5px;
+  opacity:0;transition:opacity .4s;
+}
+.card-fx-race.vis{opacity:1;animation:race 1.8s linear infinite}
+
+/* ── VOID PORTAL — Projects ── */
+/* Ripple rings from click */
+@keyframes ripple-expand{
+  0%{width:6px;height:6px;opacity:.85;border-width:1.5px}
+  100%{width:200px;height:200px;opacity:0;border-width:.5px}
+}
+.pcard-ripple{
+  position:absolute;border-radius:50%;pointer-events:none;
+  border:1.5px solid rgba(255,23,68,.65);
+  box-shadow:0 0 8px rgba(255,23,68,.25),inset 0 0 8px rgba(255,23,68,.1);
+  transform:translate(-50%,-50%);
+  animation:ripple-expand .9s cubic-bezier(.2,.6,.3,1) forwards;
+  z-index:2;
+}
+
+/* Orbiting border */
+@property --orbit-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
+@keyframes orbit{from{--orbit-angle:0deg}to{--orbit-angle:360deg}}
+.card-fx-orbit{
+  position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;
+  background:conic-gradient(from var(--orbit-angle,0deg),
+    transparent 0deg,transparent 310deg,
+    rgba(255,23,68,.2) 330deg,rgba(255,23,68,.9) 350deg,rgba(255,23,68,.0) 360deg);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  mask-composite:exclude;padding:1.5px;
+  opacity:0;transition:opacity .5s;
+}
+.card-fx-orbit.vis{opacity:1;animation:orbit 2.4s linear infinite}
+  0%{transform:translate(0,0) scale(1.2);opacity:.9}
+  100%{transform:translate(var(--dx,0px),var(--dy,-44px)) scale(0);opacity:0}
+}
+.card-particle{
+  position:absolute;pointer-events:none;
+  width:3px;height:3px;border-radius:50%;
+  background:var(--r);box-shadow:0 0 5px var(--r),0 0 12px var(--rlo);
+  animation:rise var(--pd,.85s) var(--ez) forwards;
+  z-index:10;
+}
 
 /* Top-border sweep line — every hoverable surface */
 .tlc::before,.ec::before,.soc::before,.ii::before,.cf-front::before,.cf-back::before,.hob::before{
@@ -850,27 +975,220 @@ document.getElementById('tbtn').addEventListener('click',function(){
 });
 
 /* ══════════════════════════════════════════
-   CARD 3D TILT
+   HOLOGRAPHIC SPRING HOVER SYSTEM v4
+   Modes: tilt | circuit | portal
 ══════════════════════════════════════════ */
-document.querySelectorAll('.card,.tlc,.ec,.pcard').forEach(function(c){
-  c.addEventListener('mousemove',function(e){
-    var rect=c.getBoundingClientRect();
-    c.style.setProperty('--mx',((e.clientX-rect.left)/rect.width*100)+'%');
-    c.style.setProperty('--my',((e.clientY-rect.top)/rect.height*100)+'%');
-    var x=(e.clientX-rect.left)/rect.width-.5;
-    var y=(e.clientY-rect.top)/rect.height-.5;
-    c.style.transform='perspective(700px) rotateY('+(x*7)+'deg) rotateX('+(-y*7)+'deg) translateY(-3px)';
+(function(){
+  /* ── ZONE CONFIGS ── */
+  var ZONES=[
+    /* Hacker profile, about cards */
+    {sel:'#about .card',       mode:'tilt',    tilt:9,  holo:true,  spec:true,  edge:true,  depth:true,  ptcl:true,  lift:10},
+    /* Engagement history */
+    {sel:'.tlc',               mode:'tilt',    tilt:7,  holo:true,  spec:true,  edge:true,  depth:false, ptcl:true,  lift:8},
+    /* Creds & clearance handled via cf-front/cf-back below */
+    /* Education */
+    {sel:'.ec',                mode:'tilt',    tilt:5,  holo:false, spec:true,  edge:true,  depth:false, ptcl:false, lift:6},
+    /* Skills & Arsenal — Electric Circuit */
+    {sel:'#skills .card',      mode:'circuit', tilt:0,  holo:false, spec:false,  edge:false, depth:false, ptcl:false, lift:0},
+    /* Projects — Void Portal */
+    {sel:'.pcard',             mode:'portal',  tilt:11, holo:true,  spec:true,  edge:true,  depth:true,  ptcl:true,  lift:14},
+    /* Cert cards */
+    {sel:'.cf-front,.cf-back', mode:'tilt',    tilt:0,  holo:true,  spec:true,  edge:true,  depth:false, ptcl:false, lift:0},
+    /* Others */
+    {sel:'.st',  mode:'tilt', tilt:5,  holo:false, spec:true, edge:true,  depth:false, ptcl:false, lift:5},
+    {sel:'.soc', mode:'tilt', tilt:3,  holo:false, spec:true, edge:false, depth:false, ptcl:false, lift:0},
+    {sel:'.ii',  mode:'tilt', tilt:2,  holo:false, spec:true, edge:false, depth:false, ptcl:false, lift:0},
+    {sel:'.hob', mode:'tilt', tilt:3,  holo:false, spec:false,edge:false, depth:false, ptcl:false, lift:0},
+  ];
+
+  var STIFF=0.082, DAMP=0.74;
+  var active=new Set();
+  var rafId=null;
+
+  /* ── SHARED RAF LOOP ── */
+  function loop(){
+    active.forEach(function(el){
+      var s=el.__hfx, cfg=s.cfg;
+
+      if(cfg.mode==='circuit'){
+        /* Magnetic drift — translate only, no rotation */
+        s.tx=(s.tx||0)+(((s.dtx||0)-( s.tx||0))*0.09);
+        s.ty=(s.ty||0)+(((s.dty||0)-(s.ty||0))*0.09);
+        var done2=!s.on&&Math.abs(s.tx)<.05&&Math.abs(s.ty)<.05;
+        if(done2){el.style.transform='';active.delete(el);}
+        else el.style.transform='translate('+s.tx.toFixed(2)+'px,'+s.ty.toFixed(2)+'px) scale('+(s.on?1.015:1)+')';
+        return;
+      }
+
+      /* Tilt + Portal modes */
+      s.vx=(s.vx+(s.trx-s.rx)*STIFF)*DAMP;
+      s.vy=(s.vy+(s.try-s.ry)*STIFF)*DAMP;
+      s.rx+=s.vx; s.ry+=s.vy;
+
+      var done=!s.on&&Math.abs(s.vx)<.001&&Math.abs(s.vy)<.001;
+      if(done){
+        s.rx=0;s.ry=0;
+        el.style.transform='';el.style.boxShadow='';
+        active.delete(el);
+      } else {
+        var lift=s.on?cfg.lift:0;
+        var sx=s.ry*1.4, sy=-s.rx*1.4;
+        var scale=s.on?(cfg.mode==='portal'?1.025:1.01):1;
+
+        if(cfg.mode==='portal'&&s.on){
+          /* Chromatic fringe box-shadow */
+          el.style.boxShadow=
+            'rgba(0,229,255,.12) -3px 0 0,rgba(255,23,68,.18) 3px 0 0,'+
+            'rgba(0,0,0,.65) '+(sx+4)+'px '+(sy+20)+'px 38px,'+
+            '0 0 40px rgba(255,23,68,.28)';
+        } else if(s.on){
+          el.style.boxShadow='rgba(0,0,0,.55) '+(sx+4)+'px '+(sy+16)+'px 30px,0 0 28px rgba(255,23,68,.18)';
+        } else {
+          el.style.boxShadow='';
+        }
+        el.style.transform='perspective(700px) rotateX('+s.rx+'deg) rotateY('+s.ry+'deg) translateZ('+lift+'px) scale('+scale+')';
+      }
+    });
+    if(active.size>0) rafId=requestAnimationFrame(loop);
+    else rafId=null;
+  }
+  function startLoop(){if(!rafId)rafId=requestAnimationFrame(loop);}
+
+  /* ── SETUP ELEMENTS ── */
+  ZONES.forEach(function(cfg){
+    document.querySelectorAll(cfg.sel).forEach(function(el){
+      if(el.__hfx)return;
+
+      /* Build FX container */
+      var fx=document.createElement('div');
+      fx.className='card-fx';
+      var layers={};
+
+      if(cfg.mode==='circuit'){
+        ['corners','scan','cglow','race'].forEach(function(n){
+          var d=document.createElement('div');
+          d.className='card-fx-'+n;
+          fx.appendChild(d);layers[n]=d;
+        });
+      } else if(cfg.mode==='portal'){
+        ['orbit'].concat(
+          (cfg.holo?['holo']:[]),
+          (cfg.spec?['spec']:[]),
+          (cfg.edge?['edge']:[])
+        ).forEach(function(n){
+          var d=document.createElement('div');
+          d.className='card-fx-'+n;
+          fx.appendChild(d);layers[n]=d;
+        });
+      } else {
+        ['holo','spec','edge','depth'].forEach(function(n){
+          if(cfg[n]){var d=document.createElement('div');d.className='card-fx-'+n;fx.appendChild(d);layers[n]=d;}
+        });
+      }
+
+      el.insertBefore(fx,el.firstChild);
+      el.__hfx={rx:0,ry:0,vx:0,vy:0,trx:0,try:0,tx:0,ty:0,dtx:0,dty:0,on:false,cfg:cfg,layers:layers};
+
+      /* ── CIRCUIT: override hover border colour ── */
+      if(cfg.mode==='circuit'){
+        el.addEventListener('mouseenter',function(){
+          var s=el.__hfx;s.on=true;
+          Object.values(s.layers).forEach(function(l){l.classList.add('vis')});
+          el.style.borderColor='rgba(0,229,255,.4)';
+          el.style.boxShadow='0 0 22px rgba(0,229,255,.12),0 8px 28px rgba(0,0,0,.4)';
+          active.add(el);startLoop();
+        });
+        el.addEventListener('mousemove',function(e){
+          var s=el.__hfx;
+          var rect=el.getBoundingClientRect();
+          var relX=(e.clientX-rect.left)/rect.width;
+          var relY=(e.clientY-rect.top)/rect.height;
+          el.style.setProperty('--mx',(relX*100)+'%');
+          el.style.setProperty('--my',(relY*100)+'%');
+          /* Scan beam follows cursor Y */
+          if(s.layers.scan) s.layers.scan.style.top=(relY*100)+'%';
+          /* Magnetic drift target */
+          s.dtx=(relX-.5)*14;s.dty=(relY-.5)*8;
+          active.add(el);startLoop();
+        });
+        el.addEventListener('mouseleave',function(){
+          var s=el.__hfx;s.on=false;s.dtx=0;s.dty=0;
+          Object.values(s.layers).forEach(function(l){l.classList.remove('vis')});
+          el.style.borderColor='';el.style.boxShadow='';
+          active.add(el);startLoop();
+        });
+        return;
+      }
+
+      /* ── TILT / PORTAL: shared enter/move/leave ── */
+      el.addEventListener('mouseenter',function(){
+        var s=el.__hfx;s.on=true;
+        Object.values(s.layers).forEach(function(l){l.classList.add('vis')});
+        active.add(el);startLoop();
+      });
+      el.addEventListener('mousemove',function(e){
+        var s=el.__hfx;
+        var rect=el.getBoundingClientRect();
+        var relX=(e.clientX-rect.left)/rect.width;
+        var relY=(e.clientY-rect.top)/rect.height;
+        var mx=relX*100,my=relY*100;
+        el.style.setProperty('--mx',mx+'%');
+        el.style.setProperty('--my',my+'%');
+        el.style.setProperty('--angle',(Math.atan2(relY-.5,relX-.5)*180/Math.PI)+'deg');
+        s.trx=-(relY-.5)*cfg.tilt*2;
+        s.try=(relX-.5)*cfg.tilt*2;
+        if(cfg.ptcl&&Math.random()<.07)spawnParticle(el,e.clientX-rect.left,e.clientY-rect.top);
+      });
+      el.addEventListener('mouseleave',function(){
+        var s=el.__hfx;s.on=false;s.trx=0;s.try=0;
+        Object.values(s.layers).forEach(function(l){l.classList.remove('vis')});
+        active.add(el);startLoop();
+      });
+
+      /* ── PORTAL: ripple on click ── */
+      if(cfg.mode==='portal'){
+        el.addEventListener('click',function(e){
+          var rect=el.getBoundingClientRect();
+          var x=e.clientX-rect.left, y=e.clientY-rect.top;
+          for(var i=0;i<3;i++)(function(delay){
+            setTimeout(function(){spawnRipple(el,x,y);},delay);
+          })(i*160);
+        });
+      }
+    });
   });
-  c.addEventListener('mouseleave',function(){c.style.transform='';});
-});
-/* Glow-only tracking (no 3D tilt) for all other surface elements */
-document.querySelectorAll('.soc,.ii,.st,.hob,.cf-front,.cf-back').forEach(function(c){
-  c.addEventListener('mousemove',function(e){
-    var rect=c.getBoundingClientRect();
-    c.style.setProperty('--mx',((e.clientX-rect.left)/rect.width*100)+'%');
-    c.style.setProperty('--my',((e.clientY-rect.top)/rect.height*100)+'%');
+
+  /* ── PARTICLE ── */
+  function spawnParticle(el,x,y){
+    var p=document.createElement('div');
+    p.className='card-particle';
+    var dx=(Math.random()-.5)*28,dy=-(18+Math.random()*32);
+    var dur=(.7+Math.random()*.4).toFixed(2)+'s';
+    p.style.cssText='left:'+x+'px;top:'+y+'px;--dx:'+dx+'px;--dy:'+dy+'px;--pd:'+dur;
+    el.appendChild(p);
+    setTimeout(function(){if(p.parentNode)p.remove();},900);
+  }
+
+  /* ── RIPPLE ── */
+  function spawnRipple(el,x,y){
+    var r=document.createElement('div');
+    r.className='pcard-ripple';
+    r.style.left=x+'px';r.style.top=y+'px';
+    el.appendChild(r);
+    setTimeout(function(){if(r.parentNode)r.remove();},920);
+  }
+
+  /* Glow-only tracking for remaining surfaces */
+  document.querySelectorAll('.soc,.ii,.st,.hob,.cf-front,.cf-back').forEach(function(c){
+    c.addEventListener('mousemove',function(e){
+      var rect=c.getBoundingClientRect();
+      var relX=(e.clientX-rect.left)/rect.width,relY=(e.clientY-rect.top)/rect.height;
+      c.style.setProperty('--mx',(relX*100)+'%');
+      c.style.setProperty('--my',(relY*100)+'%');
+      c.style.setProperty('--angle',(Math.atan2(relY-.5,relX-.5)*180/Math.PI)+'deg');
+    });
   });
-});
+})();
 
 /* ══════════════════════════════════════════
    TYPING
